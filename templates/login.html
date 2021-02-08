@@ -1,18 +1,16 @@
 {{template "header.html"}}
-<form>
+<div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+    <strong>Admin Center</strong>
+</div>
+<form action="/sso/login" method="post">
     <div class="form-group">
-        <label for="exampleInputEmail1">Email address</label>
-        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
-               placeholder="Enter email">
-        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+        <label for="username">Username</label>
+        <input type="text" name="username" class="form-control" id="username">
     </div>
     <div class="form-group">
-        <label for="exampleInputPassword1">Password</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-    </div>
-    <div class="form-check">
-        <input type="checkbox" class="form-check-input" id="exampleCheck1">
-        <label class="form-check-label" for="exampleCheck1">Check me out</label>
+        <label for="password">Password</label>
+        <input type="password" name="password" class="form-control" id="password">
+        <input type="hidden" name="callback" class="form-control" value="{{ .callback }}">
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
