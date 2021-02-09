@@ -2,7 +2,9 @@
 package main
 
 import (
-	"github.com/wuzehv/passport/service/db"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/wuzehv/passport/util"
 	"log"
 )
 
@@ -17,9 +19,20 @@ var token = `
 `
 
 func main() {
-	_, err := db.Db.Exec(passport)
+	user := util.ENV("db", "dbUser")
+	passwd := util.ENV("db", "dbPasswd")
+
+	host := util.ENV("db", "dbHost")
+	port := util.ENV("db", "dbPort")
+
+	db, err := sql.Open("mysql", user+":"+passwd+"@tcp("+host+":"+port+")/?parseTime=true")
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	_, err = db.Exec(passport)
 	if err != nil {
 		panic(err)
 	}
+
 	log.Println("create database done")
 }
