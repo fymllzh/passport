@@ -10,8 +10,7 @@ func ENV(section, key string) string {
 		panic(err)
 	}
 
-	sectionInfo := config.Section(section)
-	val, err := sectionInfo.GetKey(key)
+	val, err := config.Section(section).GetKey(key)
 
 	if err != nil {
 		panic(err)

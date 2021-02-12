@@ -8,9 +8,18 @@ import (
 
 func Index(c *gin.Context) {
 	callback := c.Query("callback")
-	c.HTML(http.StatusOK, "login.html", gin.H{
-		"callback": callback,
-	})
+	token, err := c.Cookie("token")
+	if err == nil {
+		callback += "?token=" + token
+
+		c.HTML(http.StatusOK, "redirect.html", gin.H{
+			"callback": callback,
+		})
+	} else {
+		c.HTML(http.StatusOK, "login.html", gin.H{
+			"callback": callback,
+		})
+	}
 }
 
 func Login(c *gin.Context) {
@@ -19,17 +28,19 @@ func Login(c *gin.Context) {
 	passwd := c.PostForm("password")
 
 	// 校验密码
-	if !(name == "wuzehui" && passwd == "123456") {
+	if !(name == "w" && passwd == "123456") {
 		c.String(http.StatusOK, "信息错误")
 		return
 	}
 
 	// 设置会话
+	token := "123123123"
+	c.SetCookie("token", token, 3600, "/", "sso.com", false, true)
 
 	// 持久化token
 
 	// callback
-	callback += "?token=123123123"
+	callback += "?token=" + token
 
 	c.HTML(http.StatusOK, "redirect.html", gin.H{
 		"callback": callback,

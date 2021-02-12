@@ -10,13 +10,13 @@ import (
 var Db *sql.DB
 
 func init() {
-	user := util.ENV("db", "dbUser")
-	passwd := util.ENV("db", "dbPasswd")
+	user := util.ENV("db", "user")
+	passwd := util.ENV("db", "passwd")
 
-	host := util.ENV("db", "dbHost")
-	port := util.ENV("db", "dbPort")
+	host := util.ENV("db", "host")
+	port := util.ENV("db", "port")
 
-	db := util.ENV("db", "dbName")
+	db := util.ENV("db", "name")
 
 	var err error
 	Db, err = sql.Open("mysql", user+":"+passwd+"@tcp("+host+":"+port+")/"+db+"?parseTime=true")

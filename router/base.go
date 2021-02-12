@@ -25,8 +25,8 @@ type logFormat struct {
 func InitRouter() *gin.Engine {
 	gin.DisableConsoleColor()
 
-	rootDir := util.ENV("log", "rootDir")
-	logDir := util.ENV("log", "logDir")
+	rootDir := util.ENV("", "root_dir")
+	logDir := util.ENV("log", "dir")
 
 	finalDir := rootDir + logDir
 	if _, err := os.Stat(finalDir); os.IsNotExist(err) {
