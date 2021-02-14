@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/wuzehv/passport/app/sso"
 	"github.com/wuzehv/passport/util"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -34,7 +37,7 @@ func main() {
 
 func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := r.Cookie("wzh")
+		_, err := r.Cookie("name")
 		if err != nil {
 			port := util.ENV("", "addr")
 			http.Redirect(w, r, "http://sso.com" + port + "/sso/index?callback=http://" + r.Host + "/login", http.StatusMovedPermanently)
@@ -47,7 +50,21 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "login")
+	param := r.URL.Query()
+	token := param["token"][0]
+	port := util.ENV("", "addr")
+	res, err := http.Get("http://sso.com" + port + "/sso/session?token=" + token)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer res.Body.Close()
+	str, _ := ioutil.ReadAll(res.Body)
+
+	var d sso.User
+	json.Unmarshal(str, &d)
+	http.SetCookie(w, &http.Cookie{Name: "name", Value: d.Name})
+	fmt.Fprintln(w, string(str))
 }
 
 func _default(w http.ResponseWriter, _ *http.Request) {

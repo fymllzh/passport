@@ -11,4 +11,5 @@ func construct(router *gin.Engine) {
 	router.POST("/sso/login", sso.Login)
 	router.GET("/sso/logout", sso.Logout)
 	router.GET("/sso/auth", sso.Auth)
+	router.GET("/sso/session", sso.Session)
 }

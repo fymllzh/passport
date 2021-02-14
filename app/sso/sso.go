@@ -6,6 +6,12 @@ import (
 	"net/http"
 )
 
+var token = "token_str"
+
+type User struct {
+	Name string `json:"name"`
+}
+
 func Index(c *gin.Context) {
 	callback := c.Query("callback")
 	token, err := c.Cookie("token")
@@ -34,7 +40,6 @@ func Login(c *gin.Context) {
 	}
 
 	// 设置会话
-	token := "123123123"
 	c.SetCookie("token", token, 3600, "/", "sso.com", false, true)
 
 	// 持久化token
@@ -53,7 +58,14 @@ func Logout(c *gin.Context) {
 
 // Session 获取session
 func Session(c *gin.Context) {
-
+	t:= c.Query("token")
+	if t != token {
+		fmt.Println("token not match")
+		c.JSON(http.StatusInternalServerError, User{})
+		return
+	}
+	s := User{Name: "wzh"}
+	c.JSON(http.StatusOK, s)
 }
 
 // Auth 检测授权信息
