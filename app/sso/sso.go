@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -10,6 +9,12 @@ var token = "token_str"
 
 type User struct {
 	Name string `json:"name"`
+}
+
+type Response struct {
+	Success bool
+	Message string
+	Data    User
 }
 
 func Index(c *gin.Context) {
@@ -53,24 +58,30 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
+	c.SetCookie("token", token, -1, "/", "sso.com", false, true)
 	c.HTML(http.StatusOK, "logout.html", gin.H{})
 }
 
 // Session 获取session
 func Session(c *gin.Context) {
-	t:= c.Query("token")
+	t := c.Query("token")
 	if t != token {
-		fmt.Println("token not match")
-		c.JSON(http.StatusInternalServerError, User{})
+		c.JSON(http.StatusOK, Response{Success: false, Message: "token not exists"})
 		return
 	}
-	s := User{Name: "wzh"}
-	c.JSON(http.StatusOK, s)
+
+	// todo 检测是否过期
+	if false {
+		c.JSON(http.StatusOK, Response{Success: false, Message: "token expired"})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{Success: true, Message: "success", Data: User{Name: "wzh"}})
 }
 
 // Auth 检测授权信息
 // 客户端每次请求之前都需要先检测授权
 func Auth(c *gin.Context) {
-	token := c.Query("token")
-	fmt.Println(token)
+	// todo 获取用户信息
+	c.JSON(http.StatusOK, Response{Success: false, Message: "test"})
 }

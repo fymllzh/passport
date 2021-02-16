@@ -38,12 +38,20 @@ func main() {
 func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, err := r.Cookie("name")
+		port := util.ENV("", "addr")
+
 		if err != nil {
-			port := util.ENV("", "addr")
-			http.Redirect(w, r, "http://sso.com" + port + "/sso/index?callback=http://" + r.Host + "/login", http.StatusMovedPermanently)
+			http.Redirect(w, r, "http://sso.com"+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
 			return
 		} else {
 			// 请求sso进行auth
+			var d sso.Response
+			httpRequest("/sso/auth", "token_str1", &d)
+
+			if !d.Success {
+				http.Redirect(w, r, "http://sso.com"+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
+				return
+			}
 		}
 		handler(w, r)
 	}
@@ -52,21 +60,37 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 func login(w http.ResponseWriter, r *http.Request) {
 	param := r.URL.Query()
 	token := param["token"][0]
+
+	var d sso.Response
+	httpRequest("/sso/session", token, &d)
+
+	if !d.Success {
+		fmt.Fprintln(w, "logout fail")
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{Name: "name", Value: d.Data.Name})
+	fmt.Fprintln(w, d.Data.Name)
+}
+
+func _default(w http.ResponseWriter, _ *http.Request) {
+	fmt.Fprintln(w, "default")
+}
+
+func httpRequest(url string, token string, value interface{}) {
 	port := util.ENV("", "addr")
-	res, err := http.Get("http://sso.com" + port + "/sso/session?token=" + token)
+	res, err := http.Get("http://sso.com" + port + url + "?token=" + token)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	defer res.Body.Close()
-	str, _ := ioutil.ReadAll(res.Body)
+	str, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	var d sso.User
-	json.Unmarshal(str, &d)
-	http.SetCookie(w, &http.Cookie{Name: "name", Value: d.Name})
-	fmt.Fprintln(w, string(str))
-}
-
-func _default(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprintln(w, "default")
+	if err = json.Unmarshal(str, &value); err != nil {
+		log.Fatalln(err)
+	}
 }
