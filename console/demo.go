@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/wuzehv/passport/app/sso"
@@ -45,10 +46,9 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 			return
 		} else {
 			// 请求sso进行auth
-			var d sso.Response
-			httpRequest("/sso/auth", "token_str1", &d)
+			_, err := httpRequest("/sso/auth", "token_str1")
 
-			if !d.Success {
+			if err != nil {
 				http.Redirect(w, r, "http://sso.com"+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
 				return
 			}
@@ -61,23 +61,21 @@ func login(w http.ResponseWriter, r *http.Request) {
 	param := r.URL.Query()
 	token := param["token"][0]
 
-	var d sso.Response
-	httpRequest("/sso/session", token, &d)
-
-	if !d.Success {
-		fmt.Fprintln(w, "logout fail")
+	d, err := httpRequest("/sso/session", token)
+	if err != nil {
+		fmt.Fprintln(w, err)
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{Name: "name", Value: d.Data.Name})
-	fmt.Fprintln(w, d.Data.Name)
+	http.SetCookie(w, &http.Cookie{Name: "name", Value: d.Name})
+	fmt.Fprintln(w, d.Name)
 }
 
 func _default(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintln(w, "default")
 }
 
-func httpRequest(url string, token string, value interface{}) {
+func httpRequest(url string, token string) (sso.User, error) {
 	port := util.ENV("", "addr")
 	res, err := http.Get("http://sso.com" + port + url + "?token=" + token)
 	if err != nil {
@@ -90,7 +88,14 @@ func httpRequest(url string, token string, value interface{}) {
 		log.Fatalln(err)
 	}
 
-	if err = json.Unmarshal(str, &value); err != nil {
+	var d sso.Response
+	if err = json.Unmarshal(str, &d); err != nil {
 		log.Fatalln(err)
 	}
+
+	if !d.Success {
+		return d.Data, errors.New(d.Message)
+	}
+
+	return d.Data, nil
 }
