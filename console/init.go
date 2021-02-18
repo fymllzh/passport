@@ -39,11 +39,11 @@ CREATE TABLE IF NOT EXISTS passport.token
 `
 
 func main() {
-	user := util.ENV("db", "dbUser")
-	passwd := util.ENV("db", "dbPasswd")
+	user := util.ENV("db", "user")
+	passwd := util.ENV("db", "passwd")
 
-	host := util.ENV("db", "dbHost")
-	port := util.ENV("db", "dbPort")
+	host := util.ENV("db", "host")
+	port := util.ENV("db", "port")
 
 	db, err := sql.Open("mysql", user+":"+passwd+"@tcp("+host+":"+port+")/?parseTime=true")
 	if err != nil {

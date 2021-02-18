@@ -10,5 +10,5 @@ func main() {
 	defer db.Db.Close()
 
 	router := router.InitRouter()
-	router.Run(util.ENV("product", "addr"))
+	router.Run(util.ENV("", "addr"))
 }
