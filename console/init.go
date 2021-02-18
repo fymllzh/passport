@@ -8,14 +8,34 @@ import (
 	"log"
 )
 
-var passport = `
+var passportDb = `
 CREATE DATABASE IF NOT EXISTS passport DEFAULT CHARACTER SET utf8
 `
 
-var user = `
+var userTable = `
+CREATE TABLE IF NOT EXISTS passport.user
+(
+  id       int AUTO_INCREMENT
+    PRIMARY KEY,
+  email    varchar(255) NOT NULL,
+  password varchar(255) NOT NULL,
+  salt     varchar(255) NOT NULL,
+  CONSTRAINT email
+    UNIQUE (email)
+) CHARACTER SET utf8
 `
 
-var token = `
+var tokenTable = `
+CREATE TABLE IF NOT EXISTS passport.token
+(
+  id      int AUTO_INCREMENT
+    PRIMARY KEY,
+  user_id int                                NOT NULL,
+  token   varchar(255)                       NOT NULL,
+  created datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  CONSTRAINT token
+    UNIQUE (token)
+) CHARACTER SET utf8
 `
 
 func main() {
@@ -29,10 +49,25 @@ func main() {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	_, err = db.Exec(passport)
+
+	_, err = db.Exec(passportDb)
 	if err != nil {
 		panic(err)
 	}
 
 	log.Println("create database done")
+
+	_, err = db.Exec(userTable)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("create user table done")
+
+	_, err = db.Exec(tokenTable)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("create token table done")
 }

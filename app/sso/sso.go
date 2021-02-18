@@ -6,11 +6,23 @@ import (
 	"net/http"
 )
 
+var cookie = false
+var token = "123456789"
+
 func Index(c *gin.Context) {
 	callback := c.Query("callback")
-	c.HTML(http.StatusOK, "login.html", gin.H{
-		"callback": callback,
-	})
+
+	if cookie {
+		callback += "?token=" + token
+
+		c.HTML(http.StatusOK, "redirect.html", gin.H{
+			"callback": callback,
+		})
+	} else {
+		c.HTML(http.StatusOK, "login.html", gin.H{
+			"callback": callback,
+		})
+	}
 }
 
 func Login(c *gin.Context) {
@@ -25,11 +37,12 @@ func Login(c *gin.Context) {
 	}
 
 	// 设置会话
+	cookie = true
 
 	// 持久化token
 
 	// callback
-	callback += "?token=123123123"
+	callback += "?token=" + token
 
 	c.HTML(http.StatusOK, "redirect.html", gin.H{
 		"callback": callback,

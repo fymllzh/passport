@@ -10,6 +10,7 @@ import (
 var Db *sql.DB
 
 func init() {
+	return
 	user := util.ENV("db", "dbUser")
 	passwd := util.ENV("db", "dbPasswd")
 

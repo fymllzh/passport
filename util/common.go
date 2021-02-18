@@ -2,6 +2,7 @@ package util
 
 import (
 	"github.com/go-ini/ini"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func ENV(section, key string) string {
@@ -18,4 +19,18 @@ func ENV(section, key string) string {
 	}
 
 	return val.String()
+}
+
+func GenPassword(pwd string) string {
+	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(hash)
+}
+
+func VerifyPassword(hash string, pwd string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(pwd))
+	return err == nil
 }
