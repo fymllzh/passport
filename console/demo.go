@@ -40,16 +40,17 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, err := r.Cookie("name")
 		port := util.ENV("", "addr")
+		domain := util.ENV("", "domain")
 
 		if err != nil {
-			http.Redirect(w, r, "http://sso.com"+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
+			http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
 			return
 		} else {
 			// 请求sso进行auth
 			_, err := httpRequest("/sso/auth", "token_str1")
 
 			if err != nil {
-				http.Redirect(w, r, "http://sso.com"+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
+				http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
 				return
 			}
 		}
@@ -77,7 +78,8 @@ func _default(w http.ResponseWriter, _ *http.Request) {
 
 func httpRequest(url string, token string) (sso.User, error) {
 	port := util.ENV("", "addr")
-	res, err := http.Get("http://sso.com" + port + url + "?token=" + token)
+	domain := util.ENV("", "domain")
+	res, err := http.Get(domain + port + url + "?token=" + token)
 	if err != nil {
 		log.Fatalln(err)
 	}

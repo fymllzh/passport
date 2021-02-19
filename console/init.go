@@ -3,6 +3,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/wuzehv/passport/util"
 	"log"
@@ -19,7 +20,6 @@ CREATE TABLE IF NOT EXISTS passport.user
     PRIMARY KEY,
   email    varchar(255) NOT NULL,
   password varchar(255) NOT NULL,
-  salt     varchar(255) NOT NULL,
   CONSTRAINT email
     UNIQUE (email)
 ) CHARACTER SET utf8
@@ -70,4 +70,14 @@ func main() {
 	}
 
 	log.Println("create token table done")
+
+	u := "admin"
+	p := util.GenPassword("admin")
+	usql := fmt.Sprintf("insert into passport.user values (null, '%s', '%s')", u, p)
+	_, err = db.Exec(usql)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("initialize user: admin, password: admin")
 }

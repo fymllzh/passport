@@ -2,6 +2,8 @@ package sso
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wuzehv/passport/model/user"
+	"github.com/wuzehv/passport/util"
 	"net/http"
 )
 
@@ -39,8 +41,14 @@ func Login(c *gin.Context) {
 	passwd := c.PostForm("password")
 
 	// 校验密码
-	if !(name == "w" && passwd == "123456") {
-		c.String(http.StatusOK, "信息错误")
+	u, err := user.FindByEmail(name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Success: false, Message: "系统错误"})
+		return
+	}
+
+	if !util.VerifyPassword(u.Password, passwd) {
+		c.JSON(http.StatusOK, Response{Success: false, Message: "用户名或密码错误"})
 		return
 	}
 
