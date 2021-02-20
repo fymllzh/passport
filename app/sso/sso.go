@@ -1,13 +1,20 @@
 package sso
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/wuzehv/passport/model/user"
+	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
 	"net/http"
+	"time"
 )
 
-var token = "token_str"
+const (
+	CallbackKey = "callback"
+	CookieKey   = "flag"
+	TokenKey    = "token"
+)
 
 type User struct {
 	Name string `json:"name"`
@@ -20,10 +27,10 @@ type Response struct {
 }
 
 func Index(c *gin.Context) {
-	callback := c.Query("callback")
-	token, err := c.Cookie("token")
+	callback := c.Query(CallbackKey)
+	token, err := c.Cookie(CookieKey)
 	if err == nil {
-		callback += "?token=" + token
+		callback += "?" + TokenKey + "=" + token
 
 		c.HTML(http.StatusOK, "redirect.html", gin.H{
 			"callback": callback,
@@ -36,16 +43,13 @@ func Index(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	callback := c.PostForm("callback")
+	callback := c.PostForm(CallbackKey)
 	name := c.PostForm("username")
 	passwd := c.PostForm("password")
 
 	// 校验密码
-	u, err := user.FindByEmail(name)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Success: false, Message: "系统错误"})
-		return
-	}
+	var u user.User
+	db.Db.Table(user.Table).Where("email = ?", name).First(&u)
 
 	if !util.VerifyPassword(u.Password, passwd) {
 		c.JSON(http.StatusOK, Response{Success: false, Message: "用户名或密码错误"})
@@ -53,11 +57,15 @@ func Login(c *gin.Context) {
 	}
 
 	// 设置会话
-	c.SetCookie("token", token, 3600, "/", "sso.com", false, true)
-	// 持久化token
+	c.SetCookie(CookieKey, "true", 86400, "/", util.ENV("", "domain"), false, true)
+
+	// 随便生成一个token
+	token := fmt.Sprintf("%d", time.Now().UnixNano())
+
+	// 持久化
 
 	// callback
-	callback += "?token=" + token
+	callback += "?" + TokenKey + "=" + token
 
 	c.HTML(http.StatusOK, "redirect.html", gin.H{
 		"callback": callback,
@@ -65,13 +73,13 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie("token", token, -1, "/", "sso.com", false, true)
+	c.SetCookie(TokenKey, "false", -1, "/", util.ENV("", "domain"), false, true)
 	c.HTML(http.StatusOK, "logout.html", gin.H{})
 }
 
 // Session 获取session
 func Session(c *gin.Context) {
-	t := c.Query("token")
+	t := c.Query(TokenKey)
 	if t != token {
 		c.JSON(http.StatusOK, Response{Success: false, Message: "token not exists"})
 		return

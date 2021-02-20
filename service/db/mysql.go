@@ -1,13 +1,13 @@
 package db
 
 import (
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/wuzehv/passport/util"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"log"
 )
 
-var Db *sql.DB
+var Db *gorm.DB
 
 func init() {
 	user := util.ENV("db", "user")
@@ -19,15 +19,9 @@ func init() {
 	db := util.ENV("db", "name")
 
 	var err error
-	Db, err = sql.Open("mysql", user+":"+passwd+"@tcp("+host+":"+port+")/"+db+"?parseTime=true")
+	dsn := user+":"+passwd+"@tcp("+host+":"+port+")/"+db+"?parseTime=true"
+	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err.Error())
-	}
-
-	Db.SetMaxIdleConns(20)
-	Db.SetMaxOpenConns(20)
-
-	if err := Db.Ping(); err != nil {
-		log.Fatalln(err)
 	}
 }
