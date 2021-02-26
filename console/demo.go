@@ -38,19 +38,19 @@ func main() {
 
 func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, err := r.Cookie("name")
+		token, err := r.Cookie("token")
 		port := util.ENV("", "addr")
-		domain := util.ENV("", "domain")
+		domain := "http://" + util.ENV("", "domain")
 
 		if err != nil {
-			http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
+			http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusTemporaryRedirect)
 			return
 		} else {
 			// 请求sso进行auth
-			_, err := httpRequest("/sso/auth", "token_str1")
+			_, err := httpRequest("/sso/auth", token.Value)
 
 			if err != nil {
-				http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusMovedPermanently)
+				http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusTemporaryRedirect)
 				return
 			}
 		}
@@ -60,25 +60,31 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 
 func login(w http.ResponseWriter, r *http.Request) {
 	param := r.URL.Query()
+	if _, ok := param["token"]; !ok {
+		fmt.Fprintln(w, "system error")
+		return
+	}
+
 	token := param["token"][0]
 
-	d, err := httpRequest("/sso/session", token)
+	_, err := httpRequest("/sso/session", token)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{Name: "name", Value: d.Name})
-	fmt.Fprintln(w, d.Name)
+	http.SetCookie(w, &http.Cookie{Name: "token", Value: token})
+
+	http.Redirect(w, r, "/index", http.StatusTemporaryRedirect)
 }
 
 func _default(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprintln(w, "default")
+	fmt.Fprintln(w, "index page")
 }
 
 func httpRequest(url string, token string) (sso.User, error) {
 	port := util.ENV("", "addr")
-	domain := util.ENV("", "domain")
+	domain := "http://" + util.ENV("", "domain")
 	res, err := http.Get(domain + port + url + "?token=" + token)
 	if err != nil {
 		log.Fatalln(err)

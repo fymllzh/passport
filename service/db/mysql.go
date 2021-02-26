@@ -19,7 +19,7 @@ func init() {
 	db := util.ENV("db", "name")
 
 	var err error
-	dsn := user+":"+passwd+"@tcp("+host+":"+port+")/"+db+"?parseTime=true"
+	dsn := user + ":" + passwd + "@tcp(" + host + ":" + port + ")/" + db + "?parseTime=true"
 	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err.Error())

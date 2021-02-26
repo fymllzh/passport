@@ -3,6 +3,7 @@ package sso
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	token2 "github.com/wuzehv/passport/model/token"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
@@ -49,20 +50,21 @@ func Login(c *gin.Context) {
 
 	// 校验密码
 	var u user.User
-	db.Db.Table(user.Table).Where("email = ?", name).First(&u)
+	db.Db.Where("email = ?", name).First(&u)
 
 	if !util.VerifyPassword(u.Password, passwd) {
 		c.JSON(http.StatusOK, Response{Success: false, Message: "用户名或密码错误"})
 		return
 	}
 
-	// 设置会话
-	c.SetCookie(CookieKey, "true", 86400, "/", util.ENV("", "domain"), false, true)
-
 	// 随便生成一个token
 	token := fmt.Sprintf("%d", time.Now().UnixNano())
 
+	// 设置会话
+	c.SetCookie(CookieKey, token, 86400, "/", util.ENV("", "domain"), false, true)
+
 	// 持久化
+	db.Db.Create(&token2.Token{UserId: u.Id, Token: token})
 
 	// callback
 	callback += "?" + TokenKey + "=" + token
@@ -80,7 +82,10 @@ func Logout(c *gin.Context) {
 // Session 获取session
 func Session(c *gin.Context) {
 	t := c.Query(TokenKey)
-	if t != token {
+
+	var token token2.Token
+	db.Db.Where("token = ?", t).First(&token)
+	if token.Id == 0 {
 		c.JSON(http.StatusOK, Response{Success: false, Message: "token not exists"})
 		return
 	}
@@ -97,6 +102,14 @@ func Session(c *gin.Context) {
 // Auth 检测授权信息
 // 客户端每次请求之前都需要先检测授权
 func Auth(c *gin.Context) {
-	// todo 获取用户信息
-	c.JSON(http.StatusOK, Response{Success: false, Message: "test"})
+	t := c.Query(TokenKey)
+
+	var token token2.Token
+	db.Db.Where("token = ?", t).First(&token)
+	if token.Id == 0 {
+		c.JSON(http.StatusOK, Response{Success: false, Message: "token not exists"})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{Success: true, Message: "success"})
 }
