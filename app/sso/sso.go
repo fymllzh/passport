@@ -1,50 +1,43 @@
+// 平台内部接口
+
 package sso
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	token2 "github.com/wuzehv/passport/model/token"
+	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
 	"net/http"
-	"time"
+	"strconv"
 )
-
-const (
-	CallbackKey = "callback"
-	CookieKey   = "flag"
-	TokenKey    = "token"
-)
-
-type User struct {
-	Name string `json:"name"`
-}
-
-type Response struct {
-	Success bool
-	Message string
-	Data    User
-}
 
 func Index(c *gin.Context) {
-	callback := c.Query(CallbackKey)
-	token, err := c.Cookie(CookieKey)
-	if err == nil {
-		callback += "?" + TokenKey + "=" + token
+	callback := c.Query(util.CallbackKey)
 
-		c.HTML(http.StatusOK, "redirect.html", gin.H{
-			"callback": callback,
-		})
-	} else {
+	// 根据token解析出用户信息
+	token, err := c.Cookie(util.CookieKey)
+
+	if err != nil {
 		c.HTML(http.StatusOK, "login.html", gin.H{
 			"callback": callback,
 		})
+
+		return
 	}
+
+	uid, _ := strconv.Atoi(token[32:])
+	s := session.NewSession(uint(uid), 0)
+
+	callback += "?" + util.TokenKey + "=" + s.Token
+
+	c.HTML(http.StatusOK, "redirect.html", gin.H{
+		"callback": callback,
+	})
 }
 
 func Login(c *gin.Context) {
-	callback := c.PostForm(CallbackKey)
+	callback := c.PostForm(util.CallbackKey)
 	name := c.PostForm("username")
 	passwd := c.PostForm("password")
 
@@ -53,21 +46,25 @@ func Login(c *gin.Context) {
 	db.Db.Where("email = ?", name).First(&u)
 
 	if !util.VerifyPassword(u.Password, passwd) {
-		c.JSON(http.StatusOK, Response{Success: false, Message: "用户名或密码错误"})
+		c.JSON(http.StatusOK, util.UsernamePasswdNotMatch.Msg(nil))
 		return
 	}
 
-	// 随便生成一个token
-	token := fmt.Sprintf("%d", time.Now().UnixNano())
+	// 初始化token
+	md5token := util.GenToken()
 
-	// 设置会话
-	c.SetCookie(CookieKey, token, 86400, "/", util.ENV("", "domain"), false, true)
+	// 设置会话为浏览器关闭即失效
+	token := md5token + strconv.FormatUint(uint64(u.Id), 10)
+	c.SetCookie(util.CookieKey, token, 0, "/", "", false, true)
+
+	// 重置所有客户端session状态
+	session.LogoutAll(u.Id)
 
 	// 持久化
-	db.Db.Create(&token2.Token{UserId: u.Id, Token: token})
+	s := session.NewSession(u.Id, 0)
 
 	// callback
-	callback += "?" + TokenKey + "=" + token
+	callback += "?" + util.TokenKey + "=" + s.Token
 
 	c.HTML(http.StatusOK, "redirect.html", gin.H{
 		"callback": callback,
@@ -75,41 +72,6 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie(TokenKey, "false", -1, "/", util.ENV("", "domain"), false, true)
+	c.SetCookie(util.TokenKey, "false", -1, "/", util.ENV("", "domain"), false, true)
 	c.HTML(http.StatusOK, "logout.html", gin.H{})
-}
-
-// Session 获取session
-func Session(c *gin.Context) {
-	t := c.Query(TokenKey)
-
-	var token token2.Token
-	db.Db.Where("token = ?", t).First(&token)
-	if token.Id == 0 {
-		c.JSON(http.StatusOK, Response{Success: false, Message: "token not exists"})
-		return
-	}
-
-	// todo 检测是否过期
-	if false {
-		c.JSON(http.StatusOK, Response{Success: false, Message: "token expired"})
-		return
-	}
-
-	c.JSON(http.StatusOK, Response{Success: true, Message: "success", Data: User{Name: "wzh"}})
-}
-
-// Auth 检测授权信息
-// 客户端每次请求之前都需要先检测授权
-func Auth(c *gin.Context) {
-	t := c.Query(TokenKey)
-
-	var token token2.Token
-	db.Db.Where("token = ?", t).First(&token)
-	if token.Id == 0 {
-		c.JSON(http.StatusOK, Response{Success: false, Message: "token not exists"})
-		return
-	}
-
-	c.JSON(http.StatusOK, Response{Success: true, Message: "success"})
 }

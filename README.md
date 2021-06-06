@@ -25,8 +25,8 @@
 
 4. 浏览器访问
 ```
-client.com:8081/index
-client.com:8082/index
+client.one.com:8081/index
+client.two.com:8082/index
 ```
 
 **默认登录信息：**

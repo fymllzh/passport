@@ -3,13 +3,18 @@ package main
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/wuzehv/passport/model/token"
+	"github.com/wuzehv/passport/model/client"
+	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/util"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
 )
+
+var dropDb = `
+DROP DATABASE IF EXISTS passport
+`
 
 var passportDb = `
 CREATE DATABASE IF NOT EXISTS passport DEFAULT CHARACTER SET utf8
@@ -30,6 +35,12 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
+	db.Exec(dropDb)
+	log.Println("drop database done")
+
+	db.Exec(passportDb)
+	log.Println("create database done")
+
 	db.Exec(passportDb)
 	log.Println("create database done")
 
@@ -46,12 +57,19 @@ func main() {
 
 	log.Println("create users table done")
 
-	err = db.AutoMigrate(token.Token{})
+	err = db.AutoMigrate(session.Session{})
 	if err != nil {
 		panic(err)
 	}
 
 	log.Println("create tokens table done")
+
+	err = db.AutoMigrate(client.Client{})
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("create clients table done")
 
 	u = "admin@gmail.com"
 	p := util.GenPassword("admin")

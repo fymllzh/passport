@@ -1,8 +1,12 @@
 package util
 
 import (
+	"crypto/md5"
+	"fmt"
 	"github.com/go-ini/ini"
 	"golang.org/x/crypto/bcrypt"
+	"math/rand"
+	"time"
 )
 
 func ENV(section, key string) string {
@@ -32,4 +36,9 @@ func GenPassword(pwd string) string {
 func VerifyPassword(hash string, pwd string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(pwd))
 	return err == nil
+}
+
+func GenToken() string {
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%d", rand.Int()))))
 }

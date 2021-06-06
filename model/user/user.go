@@ -1,10 +1,19 @@
 package user
 
-import "time"
+import "github.com/wuzehv/passport/model/base"
 
 type User struct {
-	Id        uint   `gorm:"primaryKey"`
-	Email     string `gorm:"unique"`
-	Password  string
-	CreatedAt time.Time
+	base.Model
+	Email    string `gorm:"unique"`
+	Password string
+	Status   uint
 }
+
+const (
+	// 正常
+	StatusNormal = iota
+	// 已禁用
+	StatusDisabled
+)
+
+func (u *User) Base() {}

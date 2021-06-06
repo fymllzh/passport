@@ -5,7 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/wuzehv/passport/app/sso"
+	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/util"
 	"io/ioutil"
 	"log"
@@ -46,8 +46,8 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 			http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusTemporaryRedirect)
 			return
 		} else {
-			// 请求sso进行auth
-			_, err := httpRequest("/sso/auth", token.Value)
+			// 获取用户信息
+			_, err := httpRequest("/svc/userinfo", token.Value)
 
 			if err != nil {
 				http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusTemporaryRedirect)
@@ -67,7 +67,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	token := param["token"][0]
 
-	_, err := httpRequest("/sso/session", token)
+	_, err := httpRequest("/svc/session", token)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
@@ -82,10 +82,11 @@ func _default(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprintln(w, "index page")
 }
 
-func httpRequest(url string, token string) (sso.User, error) {
+func httpRequest(url string, token string) (interface{}, error) {
 	port := util.ENV("", "addr")
 	domain := "http://" + util.ENV("", "domain")
-	res, err := http.Get(domain + port + url + "?token=" + token)
+	fmt.Println(domain + port + url + "?token=" + token)
+	res, err := http.Post(domain+port+url+"?token="+token, "", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -93,16 +94,18 @@ func httpRequest(url string, token string) (sso.User, error) {
 	defer res.Body.Close()
 	str, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("bb", err)
 	}
 
-	var d sso.Response
+	log.Printf("get response: %s\n", str)
+
+	var d util.Response
 	if err = json.Unmarshal(str, &d); err != nil {
-		log.Fatalln(err)
+		log.Fatalln(d, err)
 	}
 
-	if !d.Success {
-		return d.Data, errors.New(d.Message)
+	if d.Code != 0 {
+		return user.User{}, errors.New(d.Message)
 	}
 
 	return d.Data, nil
