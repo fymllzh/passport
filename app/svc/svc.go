@@ -8,6 +8,7 @@ import (
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
 	"net/http"
+	"time"
 )
 
 // UserInfo 获取用户信息
@@ -63,7 +64,7 @@ func commonCheck(s *session.Session) util.Code {
 	}
 
 	// 过期检测
-	if false {
+	if time.Now().After(s.ExpireTime) {
 		return util.SessionExpired
 	}
 

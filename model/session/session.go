@@ -9,11 +9,11 @@ import (
 
 type Session struct {
 	base.Model
-	Token      string `gorm:"unique"`
-	UserId     uint   `gorm:"index"`
-	ClientId   uint   `gorm:"index"`
-	ExpireTime time.Time
-	Status     uint
+	Token      string    `gorm:"unique;not null"`
+	UserId     uint      `gorm:"index;not null"`
+	ClientId   uint      `gorm:"index;not null"`
+	ExpireTime time.Time `gorm:"not null;"`
+	Status     uint      `gorm:"not null;"`
 }
 
 const (

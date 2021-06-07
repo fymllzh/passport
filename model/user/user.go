@@ -5,8 +5,8 @@ import "github.com/wuzehv/passport/model/base"
 type User struct {
 	base.Model
 	Email    string `gorm:"unique"`
-	Password string
-	Status   uint
+	Password string `gorm:"not null;"`
+	Status   uint   `gorm:"not null;"`
 }
 
 const (

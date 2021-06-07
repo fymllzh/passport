@@ -56,7 +56,8 @@ func InitRouter() *gin.Engine {
 			Host:       param.Request.Host,
 			RemoteAddr: param.Request.RemoteAddr,
 			BodySize:   param.BodySize,
-			Message:    param.ErrorMessage}
+			Message:    param.ErrorMessage,
+		}
 
 		res, _ := json.Marshal(l)
 		return string(res) + "\n"

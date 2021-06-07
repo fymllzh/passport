@@ -6,10 +6,10 @@ import (
 
 type Client struct {
 	base.Model
-	Domain   string `gorm:"unique"`
-	Callback uint   `gorm:"index"`
-	Secret   string
-	Status   uint
+	Domain   string `gorm:"unique;not null"`
+	Callback string `gorm:"index;not null"`
+	Secret   string `gorm:"not null"`
+	Status   uint   `gorm:"not null;"`
 }
 
 const (
