@@ -31,7 +31,7 @@ func main() {
 	fmt.Println("listen:", addr)
 
 	http.HandleFunc("/", wrapHandler(_default))
-	http.HandleFunc("/login", login)
+	http.HandleFunc("/callback", callback)
 
 	log.Fatalln(http.ListenAndServe(addr, nil))
 }
@@ -43,14 +43,14 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 		domain := "http://" + util.ENV("", "domain")
 
 		if err != nil {
-			http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, domain+port+"/sso/index?domain="+r.Host+"&jump=/index", http.StatusTemporaryRedirect)
 			return
 		} else {
 			// 获取用户信息
 			_, err := httpRequest("/svc/userinfo", token.Value)
 
 			if err != nil {
-				http.Redirect(w, r, domain+port+"/sso/index?callback=http://"+r.Host+"/login", http.StatusTemporaryRedirect)
+				http.Redirect(w, r, domain+port+"/sso/index?domain="+r.Host+"&jump=/index", http.StatusTemporaryRedirect)
 				return
 			}
 		}
@@ -58,7 +58,7 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func login(w http.ResponseWriter, r *http.Request) {
+func callback(w http.ResponseWriter, r *http.Request) {
 	param := r.URL.Query()
 	if _, ok := param["token"]; !ok {
 		fmt.Fprintln(w, "system error")
@@ -86,7 +86,7 @@ func httpRequest(url string, token string) (interface{}, error) {
 	port := util.ENV("", "addr")
 	domain := "http://" + util.ENV("", "domain")
 	fmt.Println(domain + port + url + "?token=" + token)
-	res, err := http.Post(domain+port+url+"?token="+token, "", nil)
+	res, err := http.Post(domain+port+url+"?token="+token+"&domain=client.one.com", "", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -4,7 +4,10 @@ package svc
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wuzehv/passport/model/base"
+	"github.com/wuzehv/passport/model/client"
 	"github.com/wuzehv/passport/model/session"
+	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
 	"net/http"
@@ -19,18 +22,18 @@ func Userinfo(c *gin.Context) {
 	var s session.Session
 	db.Db.Where("token = ?", t).First(&s)
 
-	if code := commonCheck(&s); code != util.Success {
-		c.JSON(http.StatusOK, code.Msg(nil))
-		return
+	if code := commonCheck(c, &s); code != util.Success {
+		c.AbortWithStatusJSON(http.StatusOK, code.Msg(nil))
 	}
 
 	// 登录状态
 	if s.Status != session.StatusLogin {
-		c.JSON(http.StatusOK, util.SessionStatusNotLogin.Msg(nil))
-		return
+		c.AbortWithStatusJSON(http.StatusOK, util.SessionStatusNotLogin.Msg(nil))
 	}
 
-	c.JSON(http.StatusOK, util.Success.Msg(nil))
+	var u user.User
+	db.Db.First(&u, s.UserId)
+	c.JSON(http.StatusOK, util.Success.Msg(u))
 }
 
 // Session 客户端回调确认接口
@@ -41,14 +44,12 @@ func Session(c *gin.Context) {
 	var s session.Session
 	db.Db.Where("token = ?", t).First(&s)
 
-	if code := commonCheck(&s); code != util.Success {
-		c.JSON(http.StatusOK, code.Msg(nil))
-		return
+	if code := commonCheck(c, &s); code != util.Success {
+		c.AbortWithStatusJSON(http.StatusOK, code.Msg(nil))
 	}
 
 	if s.Status != session.StatusInit {
-		c.JSON(http.StatusOK, util.SystemError.Msg(nil))
-		return
+		c.AbortWithStatusJSON(http.StatusOK, util.SystemError.Msg(nil))
 	}
 
 	// 更新session状态
@@ -58,17 +59,36 @@ func Session(c *gin.Context) {
 	c.JSON(http.StatusOK, util.Success.Msg(nil))
 }
 
-func commonCheck(s *session.Session) util.Code {
+func commonCheck(c *gin.Context, s *session.Session) util.Code {
 	if s.Id == 0 {
 		return util.TokenNotExists
+	}
+
+	var u user.User
+	db.Db.First(&u, s.UserId)
+
+	if u.Id == 0 || u.Status != base.StatusNormal {
+		return util.UserDisabled
+	}
+
+	// 客户端检测
+	domain := c.Query(util.Domain)
+	var cl client.Client
+	cl.GetByDomain(domain)
+
+	if cl.Id == 0 || cl.Status != base.StatusNormal {
+		return util.ClientDisabled
+	}
+
+	// 客户端和session不匹配
+	if cl.Id != s.ClientId {
+		return util.SystemError
 	}
 
 	// 过期检测
 	if time.Now().After(s.ExpireTime) {
 		return util.SessionExpired
 	}
-
-	// 客户端检测
 
 	return util.Success
 }

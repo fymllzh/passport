@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/wuzehv/passport/model/base"
+	"github.com/wuzehv/passport/service/db"
 )
 
 type Client struct {
@@ -12,11 +13,8 @@ type Client struct {
 	Status   uint   `gorm:"not null;"`
 }
 
-const (
-	// 正常
-	StatusNormal = iota
-	// 已禁用
-	StatusDisabled
-)
-
 func (c *Client) Base() {}
+
+func (c *Client) GetByDomain(domain string) {
+	db.Db.Where("domain = ?", domain).First(c)
+}

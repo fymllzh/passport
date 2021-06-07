@@ -4,32 +4,46 @@ package sso
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wuzehv/passport/model/client"
 	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
+	"log"
 	"net/http"
 	"strconv"
 )
 
 func Index(c *gin.Context) {
-	callback := c.Query(util.CallbackKey)
+	jump := c.Query(util.Jump)
 
 	// 根据token解析出用户信息
 	token, err := c.Cookie(util.CookieKey)
 
 	if err != nil {
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"callback": callback,
+			"callback": "/",
 		})
-
 		return
 	}
 
-	uid, _ := strconv.Atoi(token[32:])
-	s := session.NewSession(uint(uid), 0)
+	uid, err := strconv.Atoi(token[32:])
+	if err != nil {
+		log.Printf("parse token error: %s\n", err)
+		c.AbortWithStatusJSON(http.StatusOK, util.SystemError.Msg(nil))
+	}
 
+	var cl client.Client
+	cl.GetByDomain(c.Query(util.Domain))
+	if cl.Id == 0 {
+		c.AbortWithStatusJSON(http.StatusOK, util.ClientNotExists.Msg(nil))
+	}
+
+	s := session.NewSession(uint(uid), cl.Id)
+
+	callback := cl.Callback
 	callback += "?" + util.TokenKey + "=" + s.Token
+	callback += "&" + util.Jump + "=" + jump
 
 	c.HTML(http.StatusOK, "redirect.html", gin.H{
 		"callback": callback,
@@ -37,7 +51,21 @@ func Index(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	callback := c.PostForm(util.CallbackKey)
+	//jump := c.Query(util.Jump)
+	j, ok := c.Get(util.Jump)
+	if !ok {
+		// 没有参数
+	}
+
+	jump := j.(string)
+
+	j, ok = c.Get(util.Client)
+	if !ok {
+		// 没有参数
+	}
+
+	cl := j.(*client.Client)
+
 	name := c.PostForm("username")
 	passwd := c.PostForm("password")
 
@@ -46,8 +74,7 @@ func Login(c *gin.Context) {
 	db.Db.Where("email = ?", name).First(&u)
 
 	if !util.VerifyPassword(u.Password, passwd) {
-		c.JSON(http.StatusOK, util.UsernamePasswdNotMatch.Msg(nil))
-		return
+		c.AbortWithStatusJSON(http.StatusOK, util.UsernamePasswdNotMatch.Msg(nil))
 	}
 
 	// 初始化token
@@ -61,10 +88,12 @@ func Login(c *gin.Context) {
 	session.LogoutAll(u.Id)
 
 	// 持久化
-	s := session.NewSession(u.Id, 0)
+	s := session.NewSession(u.Id, cl.Id)
 
 	// callback
+	callback := cl.Callback
 	callback += "?" + util.TokenKey + "=" + s.Token
+	callback += "&" + util.Jump + "=" + jump
 
 	c.HTML(http.StatusOK, "redirect.html", gin.H{
 		"callback": callback,

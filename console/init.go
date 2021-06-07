@@ -3,6 +3,7 @@ package main
 
 import (
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/wuzehv/passport/model/base"
 	"github.com/wuzehv/passport/model/client"
 	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
@@ -71,8 +72,8 @@ func main() {
 
 	log.Println("create clients table done")
 
-	db.Create(&client.Client{Domain: "one.com", Callback: "/callback", Secret: "123456", Status: client.StatusNormal})
-	db.Create(&client.Client{Domain: "two.com", Callback: "/callback", Secret: "123456", Status: client.StatusNormal})
+	db.Create(&client.Client{Domain: "client.one.com", Callback: "http://client.one.com:8081/callback", Secret: "123456", Status: base.StatusNormal})
+	db.Create(&client.Client{Domain: "client.two.com", Callback: "http://client.one.com:8082/callback", Secret: "123456", Status: base.StatusNormal})
 
 	log.Println("initialize client done")
 
