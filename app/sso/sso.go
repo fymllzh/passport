@@ -11,10 +11,12 @@ import (
 	"github.com/wuzehv/passport/util"
 	"log"
 	"net/http"
+	url2 "net/url"
 	"strconv"
 )
 
 func Index(c *gin.Context) {
+	domain := c.Query(util.Domain)
 	jump := c.Query(util.Jump)
 
 	// 根据token解析出用户信息
@@ -22,7 +24,8 @@ func Index(c *gin.Context) {
 
 	if err != nil {
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"callback": "/",
+			"domain": domain,
+			"jump": jump,
 		})
 		return
 	}
@@ -43,7 +46,7 @@ func Index(c *gin.Context) {
 
 	callback := cl.Callback
 	callback += "?" + util.TokenKey + "=" + s.Token
-	callback += "&" + util.Jump + "=" + jump
+	callback += "&" + util.Jump + "=" + url2.QueryEscape(jump)
 
 	c.HTML(http.StatusOK, "redirect.html", gin.H{
 		"callback": callback,
@@ -51,7 +54,6 @@ func Index(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	//jump := c.Query(util.Jump)
 	j, ok := c.Get(util.Jump)
 	if !ok {
 		// 没有参数
@@ -93,7 +95,7 @@ func Login(c *gin.Context) {
 	// callback
 	callback := cl.Callback
 	callback += "?" + util.TokenKey + "=" + s.Token
-	callback += "&" + util.Jump + "=" + jump
+	callback += "&" + util.Jump + "=" + url2.QueryEscape(jump)
 
 	c.HTML(http.StatusOK, "redirect.html", gin.H{
 		"callback": callback,

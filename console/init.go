@@ -72,14 +72,14 @@ func main() {
 
 	log.Println("create clients table done")
 
-	db.Create(&client.Client{Domain: "client.one.com", Callback: "http://client.one.com:8081/callback", Secret: "123456", Status: base.StatusNormal})
-	db.Create(&client.Client{Domain: "client.two.com", Callback: "http://client.one.com:8082/callback", Secret: "123456", Status: base.StatusNormal})
+	db.Create(&client.Client{Domain: "client.one.com:8081", Callback: "http://client.one.com:8081/callback", Secret: "123456", Status: base.StatusNormal})
+	db.Create(&client.Client{Domain: "client.two.com:8082", Callback: "http://client.two.com:8082/callback", Secret: "123456", Status: base.StatusNormal})
 
 	log.Println("initialize client done")
 
 	u = "admin@gmail.com"
 	up := "admin"
 	p := util.GenPassword(up)
-	db.Create(&user.User{Email: u, Password: p})
+	db.Create(&user.User{Email: u, Password: p, Status: base.StatusNormal})
 	log.Printf("initialize user: %s, password: %s\n", u, up)
 }

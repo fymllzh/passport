@@ -5,11 +5,11 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/util"
 	"io/ioutil"
 	"log"
 	"net/http"
+	url2 "net/url"
 )
 
 var (
@@ -36,22 +36,35 @@ func main() {
 	log.Fatalln(http.ListenAndServe(addr, nil))
 }
 
+var domain string
+
+var username string
+
 func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token, err := r.Cookie("token")
-		port := util.ENV("", "addr")
-		domain := "http://" + util.ENV("", "domain")
+
+		domain = url2.QueryEscape(r.Host)
+
+		jump := url2.QueryEscape("http://" + r.Host + r.RequestURI)
+		url := "http://" + util.ENV("", "domain") + util.ENV("", "addr") + "/sso/index?domain=" + domain + "&jump=" + jump
 
 		if err != nil {
-			http.Redirect(w, r, domain+port+"/sso/index?domain="+r.Host+"&jump=/index", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 			return
 		} else {
 			// 获取用户信息
-			_, err := httpRequest("/svc/userinfo", token.Value)
-
+			u, err := httpRequest("/svc/userinfo", token.Value)
 			if err != nil {
-				http.Redirect(w, r, domain+port+"/sso/index?domain="+r.Host+"&jump=/index", http.StatusTemporaryRedirect)
+				http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 				return
+			}
+
+			for v, item := range u.(map[string]interface{}) {
+				if v == "email" {
+					username = item.(string)
+					break
+				}
 			}
 		}
 		handler(w, r)
@@ -73,20 +86,25 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{Name: "token", Value: token})
+	http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Domain: domain})
 
-	http.Redirect(w, r, "/index", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, param["jump"][0], http.StatusTemporaryRedirect)
 }
 
-func _default(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprintln(w, "index page")
+func _default(w http.ResponseWriter, r *http.Request) {
+	d, _ := url2.QueryUnescape(domain)
+	fmt.Fprintln(w, "<h1>登录成功, 客户端: "+ d + "</h1>", "<h2>当前用户: "+username+"</h2>")
 }
 
 func httpRequest(url string, token string) (interface{}, error) {
 	port := util.ENV("", "addr")
-	domain := "http://" + util.ENV("", "domain")
-	fmt.Println(domain + port + url + "?token=" + token)
-	res, err := http.Post(domain+port+url+"?token="+token+"&domain=client.one.com", "", nil)
+	ssoDomain := "http://" + util.ENV("", "domain")
+
+	ssoUrl := ssoDomain + port + url + "?token=" + token + "&domain=" + domain
+
+	log.Println(ssoUrl)
+
+	res, err := http.Post(ssoUrl, "", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -105,7 +123,7 @@ func httpRequest(url string, token string) (interface{}, error) {
 	}
 
 	if d.Code != 0 {
-		return user.User{}, errors.New(d.Message)
+		return nil, errors.New(d.Message)
 	}
 
 	return d.Data, nil

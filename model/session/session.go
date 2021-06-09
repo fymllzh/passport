@@ -18,7 +18,7 @@ type Session struct {
 
 const (
 	// 初始化状态
-	StatusInit = iota
+	StatusInit = iota + 1
 	// 已登录
 	StatusLogin
 	// 已退出

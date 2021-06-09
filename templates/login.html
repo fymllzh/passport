@@ -2,7 +2,7 @@
 <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
     <strong>Admin Center</strong>
 </div>
-<form action="/sso/login?domain=client.one.com" method="post">
+<form action="/sso/login?domain={{ .domain }}&jump={{ .jump }}" method="post">
     <div class="form-group">
         <label for="username">Username</label>
         <input type="text" name="username" class="form-control" id="username">
@@ -10,7 +10,6 @@
     <div class="form-group">
         <label for="password">Password</label>
         <input type="password" name="password" class="form-control" id="password">
-        <input type="hidden" name="callback" class="form-control" value="{{ .callback }}">
     </div>
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
