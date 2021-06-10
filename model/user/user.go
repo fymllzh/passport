@@ -1,6 +1,9 @@
 package user
 
-import "github.com/wuzehv/passport/model/base"
+import (
+	"github.com/wuzehv/passport/model/base"
+	"github.com/wuzehv/passport/service/db"
+)
 
 type User struct {
 	base.Model
@@ -10,3 +13,7 @@ type User struct {
 }
 
 func (u *User) Base() {}
+
+func (u *User) GetByEmail(email string) {
+	db.Db.Where("email = ?", email).First(u)
+}

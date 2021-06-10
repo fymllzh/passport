@@ -93,7 +93,7 @@ func callback(w http.ResponseWriter, r *http.Request) {
 
 func _default(w http.ResponseWriter, r *http.Request) {
 	d, _ := url2.QueryUnescape(domain)
-	fmt.Fprintln(w, "<h1>登录成功, 客户端: "+ d + "</h1>", "<h2>当前用户: "+username+"</h2>")
+	fmt.Fprintln(w, "<h1>登录成功, 客户端: "+d+"</h1>", "<h2>当前用户: "+username+"</h2>")
 }
 
 func httpRequest(url string, token string) (interface{}, error) {

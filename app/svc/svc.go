@@ -24,11 +24,13 @@ func Userinfo(c *gin.Context) {
 
 	if code := commonCheck(c, &s); code != util.Success {
 		c.AbortWithStatusJSON(http.StatusOK, code.Msg(nil))
+		return
 	}
 
 	// 登录状态
 	if s.Status != session.StatusLogin {
 		c.AbortWithStatusJSON(http.StatusOK, util.SessionStatusNotLogin.Msg(nil))
+		return
 	}
 
 	var u user.User
@@ -46,10 +48,12 @@ func Session(c *gin.Context) {
 
 	if code := commonCheck(c, &s); code != util.Success {
 		c.AbortWithStatusJSON(http.StatusOK, code.Msg(nil))
+		return
 	}
 
 	if s.Status != session.StatusInit {
 		c.AbortWithStatusJSON(http.StatusOK, util.SystemError.Msg(nil))
+		return
 	}
 
 	// 更新session状态
@@ -71,10 +75,8 @@ func commonCheck(c *gin.Context, s *session.Session) util.Code {
 		return util.UserDisabled
 	}
 
-	// 客户端检测
-	domain := c.Query(util.Domain)
-	var cl client.Client
-	cl.GetByDomain(domain)
+	j, _ := c.Get(util.Client)
+	cl := j.(*client.Client)
 
 	if cl.Id == 0 || cl.Status != base.StatusNormal {
 		return util.ClientDisabled

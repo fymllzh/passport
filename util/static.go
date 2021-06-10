@@ -36,6 +36,7 @@ const (
 	CookieKey = "flag"
 	TokenKey  = "token"
 	Client    = "client"
+	Uid       = "uid"
 )
 
 // 响应结构体
