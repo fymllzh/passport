@@ -14,23 +14,24 @@ import (
 )
 
 func Index(c *gin.Context) {
-	domain := c.Query(util.Domain)
-	jump := c.Query(util.Jump)
+	tmp, _ := c.Get(util.Client)
+	cl := tmp.(*client.Client)
+
+	tmp, _ = c.Get(util.Jump)
+	jump := tmp.(string)
 
 	u, _ := c.Get(util.Uid)
-	uid := u.(int)
+	uid := u.(uint)
 
 	if uid == 0 {
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"domain": domain,
+			"domain": cl.Domain,
 			"jump":   jump,
 		})
 		return
 	}
 
-	c.HTML(http.StatusOK, "redirect.html", gin.H{
-		"callback": commonDeal(c, uint(uid), jump),
-	})
+	commonDeal(c, uid, jump)
 }
 
 func Login(c *gin.Context) {
@@ -56,23 +57,31 @@ func Login(c *gin.Context) {
 	// 重置所有客户端session状态
 	session.LogoutAll(u.Id)
 
-	c.HTML(http.StatusOK, "redirect.html", gin.H{
-		"callback": commonDeal(c, uint(u.Id), jump),
-	})
+	commonDeal(c, u.Id, jump)
 }
 
-func commonDeal(c *gin.Context, userId uint, jump string) (callback string) {
-	j, _ := c.Get(util.Client)
-	cl := j.(*client.Client)
+func commonDeal(c *gin.Context, userId uint, jump string) {
+	tmp, _ := c.Get(util.Client)
+	cl := tmp.(*client.Client)
 
 	// 持久化
 	s := session.NewSession(userId, cl.Id)
 
-	callback = cl.Callback
+	callback := cl.Callback
 	callback += "?" + util.TokenKey + "=" + s.Token
 	callback += "&" + util.Jump + "=" + url.QueryEscape(jump)
 
-	return
+	tmp, _ = c.Get(util.Sso)
+	isSso := tmp.(bool)
+
+	if isSso {
+		c.HTML(http.StatusOK, "redirect.html", gin.H{
+			"callback": callback,
+		})
+	} else {
+		// 如果不是sso，跳转到首页
+		c.Redirect(http.StatusTemporaryRedirect, "/admin/index")
+	}
 }
 
 func Logout(c *gin.Context) {

@@ -8,6 +8,7 @@ const (
 	// 外部状态码
 	UserDisabled
 	TokenNotExists
+	TokenParseError
 	SessionExpired
 	SessionStatusNotLogin
 	ClientNotExists
@@ -21,6 +22,7 @@ var errors = [...]string{
 	Success:                "success",
 	UserDisabled:           "user disabled",
 	TokenNotExists:         "token not exists",
+	TokenParseError:        "token parse exists",
 	SessionExpired:         "session expired",
 	SessionStatusNotLogin:  "session status not login",
 	ClientNotExists:        "client not exists",
@@ -37,6 +39,9 @@ const (
 	TokenKey  = "token"
 	Client    = "client"
 	Uid       = "uid"
+	Sso       = "sso"
+	Session   = "session"
+	User      = "user"
 )
 
 // 响应结构体
@@ -52,4 +57,8 @@ func (c Code) Msg(data interface{}) Response {
 		Message: errors[c],
 		Data:    data,
 	}
+}
+
+func (c Code) Error() string {
+	return errors[c]
 }

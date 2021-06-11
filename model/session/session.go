@@ -42,6 +42,10 @@ func NewSession(userId, clientId uint) Session {
 	return s
 }
 
+func (s *Session) GetByToken(t string) {
+	db.Db.Where("token = ?", t).First(&s)
+}
+
 func LogoutAll(userId uint) {
 	db.Db.Model(Session{}).Where("user_id = ?", userId).Updates(Session{Status: StatusLogout})
 }
