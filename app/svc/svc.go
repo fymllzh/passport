@@ -15,7 +15,7 @@ import (
 // 更新session状态为已登录
 func Session(c *gin.Context) {
 	tmp, _ := c.Get(util.Session)
-	s := tmp.(session.Session)
+	s := tmp.(*session.Session)
 
 	if s.Status != session.StatusInit {
 		c.AbortWithStatusJSON(http.StatusOK, util.SystemError.Msg(nil))
@@ -33,7 +33,7 @@ func Session(c *gin.Context) {
 // 客户端业务代码执行之前，需要调用该接口获取用户信息
 func Userinfo(c *gin.Context) {
 	tmp, _ := c.Get(util.Session)
-	s := tmp.(session.Session)
+	s := tmp.(*session.Session)
 
 	// 登录状态
 	if s.Status != session.StatusLogin {
@@ -42,6 +42,6 @@ func Userinfo(c *gin.Context) {
 	}
 
 	tmp, _ = c.Get(util.User)
-	u := tmp.(user.User)
+	u := tmp.(*user.User)
 	c.JSON(http.StatusOK, util.Success.Msg(u))
 }

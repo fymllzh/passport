@@ -25,14 +25,14 @@ func construct(router *gin.Engine) {
 		ssoIn.GET("/sso/index", sso.Index)
 
 		ssoIn.POST("/sso/login", sso.Login)
-		ssoIn.POST("/sso/logout", sso.Logout)
+		ssoIn.GET("/sso/logout", sso.Logout)
 	}
 
 	// admin内部
 	admin := router.Group("/admin")
 	admin.Use(adminBase())
 	{
-		admin.GET("/index/*action", index.Index)
+		admin.GET("/index/index", index.Index)
 		admin.GET("/index/test", index.Test)
 	}
 

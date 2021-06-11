@@ -37,7 +37,7 @@ password: admin
 
 ## TODO
 - [X] 登录逻辑
-- [ ] 退出逻辑
+- [X] 退出逻辑
 - [ ] 签名机制
 - [ ] 引入redis做svc接口
-- [ ] sso中心后台
+- [X] sso中心后台

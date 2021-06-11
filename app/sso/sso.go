@@ -80,11 +80,15 @@ func commonDeal(c *gin.Context, userId uint, jump string) {
 		})
 	} else {
 		// 如果不是sso，跳转到首页
-		c.Redirect(http.StatusTemporaryRedirect, "/admin/index")
+		c.Redirect(http.StatusTemporaryRedirect, "/admin/index/index")
 	}
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie(util.TokenKey, "false", -1, "/", util.ENV("", "domain"), false, true)
+	u, _ := c.Get(util.Uid)
+	uid := u.(uint)
+	session.LogoutAll(uid)
+
+	c.SetCookie(util.CookieKey, "false", -1, "/", "", false, true)
 	c.HTML(http.StatusOK, "logout.html", gin.H{})
 }
