@@ -24,7 +24,7 @@ func Index(c *gin.Context) {
 	uid := u.(uint)
 
 	if uid == 0 {
-		c.HTML(http.StatusOK, "login.html", gin.H{
+		c.HTML(http.StatusOK, "sso/login", gin.H{
 			"domain": cl.Domain,
 			"jump":   jump,
 		})
@@ -75,12 +75,12 @@ func commonDeal(c *gin.Context, userId uint, jump string) {
 	isSso := tmp.(bool)
 
 	if isSso {
-		c.HTML(http.StatusOK, "redirect.html", gin.H{
+		c.HTML(http.StatusOK, "sso/redirect", gin.H{
 			"callback": callback,
 		})
 	} else {
 		// 如果不是sso，跳转到首页
-		c.Redirect(http.StatusTemporaryRedirect, "/admin/index/index")
+		c.Redirect(http.StatusMovedPermanently, "/admin/index/index")
 	}
 }
 
@@ -90,5 +90,5 @@ func Logout(c *gin.Context) {
 	session.LogoutAll(uid)
 
 	c.SetCookie(util.CookieKey, "false", -1, "/", "", false, true)
-	c.HTML(http.StatusOK, "logout.html", gin.H{})
+	c.HTML(http.StatusOK, "sso/logout", gin.H{})
 }

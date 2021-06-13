@@ -6,6 +6,7 @@ import (
 	"github.com/wuzehv/passport/util"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -65,9 +66,23 @@ func InitRouter() *gin.Engine {
 
 	router.Use(gin.Recovery())
 
-	router.LoadHTMLGlob("templates/*")
+	router.LoadHTMLFiles(loadTemplates("templates")...)
 
 	construct(router)
 
 	return router
+}
+
+func loadTemplates(templatesDir string) []string {
+	other, err := filepath.Glob(templatesDir + "/**/*.html")
+	if err != nil {
+		panic(err)
+	}
+
+	admin, err := filepath.Glob(templatesDir + "/**/**/*.html")
+	if err != nil {
+		panic(err)
+	}
+
+	return append(admin, other...)
 }
