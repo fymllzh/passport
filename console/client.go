@@ -10,12 +10,16 @@ import (
 	"log"
 	"net/http"
 	url2 "net/url"
+	"strconv"
+	"time"
 )
 
 var (
 	h    bool
 	addr string
 )
+
+const Secret = "123456"
 
 func main() {
 	flag.BoolVar(&h, "h", false, "usage")
@@ -100,11 +104,20 @@ func httpRequest(url string, token string) (interface{}, error) {
 	port := util.ENV("", "addr")
 	ssoDomain := "http://" + util.ENV("", "domain")
 
-	ssoUrl := ssoDomain + port + url + "?token=" + token + "&domain=" + domain
+	ssoUrl := ssoDomain + port + url
 
-	log.Println(ssoUrl)
+	m := make(map[string]string)
+	m[util.TokenKey] = token
+	m[util.Domain] = domain
+	m[util.Timestamp] = strconv.FormatInt(time.Now().Unix(), 10)
+	m[util.Sign] = util.GenSign(m, Secret)
 
-	res, err := http.Post(ssoUrl, "", nil)
+	postData := url2.Values{}
+	for k, v := range m {
+		postData.Add(k, v)
+	}
+
+	res, err := http.PostForm(ssoUrl, postData)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -112,7 +125,7 @@ func httpRequest(url string, token string) (interface{}, error) {
 	defer res.Body.Close()
 	str, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Fatalln("bb", err)
+		log.Fatalln(err)
 	}
 
 	log.Printf("get response: %s\n", str)

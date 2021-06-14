@@ -38,6 +38,46 @@ password: admin
 ## TODO
 - [X] 登录逻辑
 - [X] 退出逻辑
-- [ ] 签名机制
+- [X] 签名机制
 - [ ] 引入redis做svc接口
+- [ ] IP白名单
 - [X] sso中心后台
+
+## 对接流程
+### svc接口
+* 请求方式
+  * POST
+  * `Content-Type: application/x-www-form-urlencoded`
+
+
+* 请求参数
+
+```json
+{
+  "domain": "client.one.com",
+  "timestamp": "1623680856",
+  "token": "6bc4931890225677da85a1cf05ce0fc0",
+  "sign": "6BC4931890225677DA85A1CF05CE0FC0"
+}
+```
+
+* sign签名算法
+```php
+$s = [
+    'domain' => 'client.one.com',
+    'token' => '6bc4931890225677da85a1cf05ce0fc0',
+    'timestamp' => '1623680856',
+    'sign' => '6BC4931890225677DA85A1CF05CE0FC0',
+];
+
+// 按key排序
+ksort($s);
+
+// 拼接内容
+$str = implode("", $s);
+
+// 末尾拼接密钥
+$str .= "123456";
+
+echo strtoupper(md5($str)), PHP_EOL;
+```

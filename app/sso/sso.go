@@ -8,6 +8,7 @@ import (
 	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/util"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -67,16 +68,23 @@ func commonDeal(c *gin.Context, userId uint, jump string) {
 	// 持久化
 	s := session.NewSession(userId, cl.Id)
 
-	callback := cl.Callback
-	callback += "?" + util.TokenKey + "=" + s.Token
-	callback += "&" + util.Jump + "=" + url.QueryEscape(jump)
+	callbackUrl, err := url.Parse(cl.Callback)
+	if err != nil {
+		log.Fatal("callback url config error")
+	}
+
+	callbackParams := url.Values{}
+	callbackParams.Add(util.TokenKey, s.Token)
+	callbackParams.Add(util.Jump, jump)
+
+	callbackUrl.RawQuery = callbackParams.Encode()
 
 	tmp, _ = c.Get(util.Sso)
 	isSso := tmp.(bool)
 
 	if isSso {
 		c.HTML(http.StatusOK, "sso/redirect", gin.H{
-			"callback": callback,
+			"callback": callbackUrl,
 		})
 	} else {
 		// 如果不是sso，跳转到首页

@@ -6,6 +6,8 @@ type Code int
 const (
 	Success Code = iota
 	// 外部状态码
+	ParamsError
+	SignatureError
 	UserDisabled
 	TokenNotExists
 	TokenParseError
@@ -20,6 +22,8 @@ const (
 
 var errors = [...]string{
 	Success:                "success",
+	ParamsError:            "params error",
+	SignatureError:         "signature error",
 	UserDisabled:           "user disabled",
 	TokenNotExists:         "token not exists",
 	TokenParseError:        "token parse exists",
@@ -42,7 +46,17 @@ const (
 	Sso       = "sso"
 	Session   = "session"
 	User      = "user"
+	Timestamp = "timestamp"
+	Sign      = "sign"
+	Secret    = "secret"
 )
+
+type SvcRequest struct {
+	Token     string `form:"token"`
+	Domain    string `form:"domain"`
+	Timestamp string `form:"timestamp"`
+	Sign      string `form:"sign"`
+}
 
 // 响应结构体
 type Response struct {

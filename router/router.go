@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/wuzehv/passport/app/admin/index"
 	"github.com/wuzehv/passport/app/sso"
@@ -12,6 +13,7 @@ import (
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 )
@@ -107,7 +109,14 @@ func adminBase() gin.HandlerFunc {
 // svcBase svc调用入口，校验token
 func svcBase() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		domain := c.Query(util.Domain)
+		var res util.SvcRequest
+		if c.ShouldBind(&res) != nil {
+			c.AbortWithStatusJSON(http.StatusOK, util.ParamsError.Msg(nil))
+			return
+		}
+
+		domain := res.Domain
+		domain, _ = url.QueryUnescape(domain)
 
 		var cl client.Client
 		cl.GetByDomain(domain)
@@ -117,7 +126,17 @@ func svcBase() gin.HandlerFunc {
 			return
 		}
 
-		t := c.Query(util.TokenKey)
+		fmt.Println(res.Timestamp)
+		m := make(map[string]string)
+		m[util.TokenKey] = res.Token
+		m[util.Timestamp] = res.Timestamp
+		m[util.Domain] = res.Domain
+		if util.GenSign(m, cl.Secret) != res.Sign {
+			c.AbortWithStatusJSON(http.StatusOK, util.SignatureError.Msg(nil))
+			return
+		}
+
+		t := res.Token
 
 		var s session.Session
 		s.GetByToken(t)
