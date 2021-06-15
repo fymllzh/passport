@@ -37,18 +37,18 @@ var errors = [...]string{
 
 // 通用key
 const (
-	Domain    = "domain"
-	Jump      = "jump"
-	CookieKey = "flag"
-	TokenKey  = "token"
-	Client    = "client"
-	Uid       = "uid"
-	Sso       = "sso"
-	Session   = "session"
-	User      = "user"
-	Timestamp = "timestamp"
-	Sign      = "sign"
-	Secret    = "secret"
+	Domain     = "domain"
+	Jump       = "jump"
+	CookieFlag = "flag"
+	Token      = "token"
+	Client     = "client"
+	Uid        = "uid"
+	Sso        = "sso"
+	Session    = "session"
+	User       = "user"
+	Timestamp  = "timestamp"
+	Sign       = "sign"
+	Secret     = "secret"
 )
 
 type SvcRequest struct {

@@ -1,5 +1,52 @@
 {{ define "admin/index/index" }}
-{{ template "base/header" }}
-<h3>index page</h3>
+{{ template "admin/header" }}
+<h5>用户列表</h5>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">邮箱</th>
+        <th scope="col">创建时间</th>
+        <th scope="col">操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{ range .users }}
+    <tr>
+        <th scope="row">{{ .Id }}</th>
+        <td>{{ .Email }}</td>
+        <td>{{ .CreatedAt }}</td>
+        <td></td>
+    </tr>
+    {{ end }}
+    </tbody>
+</table>
+
+<br>
+<h5>客户端列表</h5>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">域名</th>
+        <th scope="col">回调地址</th>
+        <th scope="col">密钥</th>
+        <th scope="col">创建时间</th>
+        <th scope="col">操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{ range .clients }}
+    <tr>
+        <th scope="row">{{ .Id }}</th>
+        <th>{{ .Domain }}</th>
+        <td>{{ .Callback }}</td>
+        <td>{{ .Secret }}</td>
+        <td>{{ .CreatedAt }}</td>
+        <td></td>
+    </tr>
+    {{ end }}
+    </tbody>
+</table>
 {{ template "base/footer" }}
 {{ end }}

@@ -56,11 +56,11 @@ func Login(c *gin.Context) {
 	// 初始化token
 	token := util.GenToken() + strconv.FormatUint(uint64(u.Id), 10)
 	u.Token = token
-	exp, _ := time.Parse("2006-01-02 15:04:05", time.Now().Add(session.ExpireTime).Format("2006-01-02") + " 04:00:00")
+	exp, _ := time.Parse("2006-01-02 15:04:05", time.Now().Add(session.ExpireTime).Format("2006-01-02")+" 04:00:00")
 	u.ExpireTime = exp
 	db.Db.Save(&u)
 	// 设置会话为浏览器关闭即失效
-	c.SetCookie(util.CookieKey, token, 0, "/", "", false, true)
+	c.SetCookie(util.CookieFlag, token, 0, "/", "", false, true)
 
 	// 重置所有客户端session状态
 	session.LogoutAll(u.Id)
@@ -81,7 +81,7 @@ func commonDeal(c *gin.Context, userId uint, jump string) {
 	}
 
 	callbackParams := url.Values{}
-	callbackParams.Add(util.TokenKey, s.Token)
+	callbackParams.Add(util.Token, s.Token)
 	callbackParams.Add(util.Jump, jump)
 
 	callbackUrl.RawQuery = callbackParams.Encode()
@@ -104,6 +104,6 @@ func Logout(c *gin.Context) {
 	uid := u.(uint)
 	session.LogoutAll(uid)
 
-	c.SetCookie(util.CookieKey, "false", -1, "/", "", false, true)
+	c.SetCookie(util.CookieFlag, "false", -1, "/", "", false, true)
 	c.HTML(http.StatusOK, "sso/logout", gin.H{})
 }

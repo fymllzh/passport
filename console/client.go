@@ -107,7 +107,7 @@ func httpRequest(url string, token string) (interface{}, error) {
 	ssoUrl := ssoDomain + port + url
 
 	m := make(map[string]string)
-	m[util.TokenKey] = token
+	m[util.Token] = token
 	m[util.Domain] = domain
 	m[util.Timestamp] = strconv.FormatInt(time.Now().Unix(), 10)
 	m[util.Sign] = util.GenSign(m, Secret)

@@ -1,8 +1,5 @@
 {{ define "sso/login" }}
 {{ template "base/header" }}
-<div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-    <strong>Admin Center</strong>
-</div>
 <form action="/sso/login?domain={{ .domain }}&jump={{ .jump }}" method="post">
     <div class="form-group">
         <label for="username">Username</label>

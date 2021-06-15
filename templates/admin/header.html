@@ -1,4 +1,4 @@
-{{ define "base/header" }}
+{{ define "admin/header" }}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,5 +11,6 @@
 <div class="container">
     <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
         <strong>Admin Center</strong>
+        <a href="/sso/logout" class="float-right">退出</a>
     </div>
 {{ end }}

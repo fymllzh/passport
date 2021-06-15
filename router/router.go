@@ -69,7 +69,7 @@ func ssoBase() gin.HandlerFunc {
 		c.Set(util.Uid, uint(0))
 
 		// 根据token解析出用户信息
-		token, err := c.Cookie(util.CookieKey)
+		token, err := c.Cookie(util.CookieFlag)
 		if err != nil {
 			return
 		}
@@ -87,7 +87,7 @@ func ssoBase() gin.HandlerFunc {
 // admin页面
 func adminBase() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token, err := c.Cookie(util.CookieKey)
+		token, err := c.Cookie(util.CookieFlag)
 		if err != nil {
 			c.Redirect(http.StatusTemporaryRedirect, "/")
 			return
@@ -109,7 +109,7 @@ func adminBase() gin.HandlerFunc {
 		// 判断登录是否过期
 		if u.Token != token || time.Now().After(u.ExpireTime) {
 			// 显式的删除cookie
-			c.SetCookie(util.CookieKey, "false", -1, "/", "", false, true)
+			c.SetCookie(util.CookieFlag, "false", -1, "/", "", false, true)
 
 			c.Redirect(http.StatusTemporaryRedirect, "/")
 			return
@@ -140,7 +140,7 @@ func svcBase() gin.HandlerFunc {
 		}
 
 		m := make(map[string]string)
-		m[util.TokenKey] = res.Token
+		m[util.Token] = res.Token
 		m[util.Timestamp] = res.Timestamp
 		m[util.Domain] = res.Domain
 		if util.GenSign(m, cl.Secret) != res.Sign {
