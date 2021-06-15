@@ -90,7 +90,7 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Domain: domain})
+	http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Domain: ""})
 
 	http.Redirect(w, r, param["jump"][0], http.StatusTemporaryRedirect)
 }

@@ -13,7 +13,6 @@ type Session struct {
 	UserId     uint      `gorm:"index;not null"`
 	ClientId   uint      `gorm:"index;not null"`
 	ExpireTime time.Time `gorm:"not null;"`
-	Status     uint      `gorm:"not null;"`
 }
 
 const (
@@ -31,10 +30,12 @@ func (s *Session) Base() {}
 
 func NewSession(userId, clientId uint) Session {
 	s := Session{
-		Token:      util.GenToken(),
-		UserId:     userId,
-		ClientId:   clientId,
-		Status:     StatusInit,
+		Token:    util.GenToken(),
+		UserId:   userId,
+		ClientId: clientId,
+		Model: base.Model{
+			Status: StatusInit,
+		},
 		ExpireTime: time.Now().Add(ExpireTime),
 	}
 	db.Db.Create(&s)
@@ -47,5 +48,5 @@ func (s *Session) GetByToken(t string) {
 }
 
 func LogoutAll(userId uint) {
-	db.Db.Model(Session{}).Where("user_id = ?", userId).Updates(Session{Status: StatusLogout})
+	db.Db.Model(Session{}).Where("user_id = ? and status = ?", userId, StatusLogin).Updates(Session{Model: base.Model{Status: StatusLogout}})
 }

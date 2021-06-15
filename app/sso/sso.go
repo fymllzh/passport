@@ -7,11 +7,13 @@ import (
 	"github.com/wuzehv/passport/model/client"
 	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
+	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 func Index(c *gin.Context) {
@@ -51,8 +53,13 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// 设置会话为浏览器关闭即失效
+	// 初始化token
 	token := util.GenToken() + strconv.FormatUint(uint64(u.Id), 10)
+	u.Token = token
+	exp, _ := time.Parse("2006-01-02 15:04:05", time.Now().Add(session.ExpireTime).Format("2006-01-02") + " 04:00:00")
+	u.ExpireTime = exp
+	db.Db.Save(&u)
+	// 设置会话为浏览器关闭即失效
 	c.SetCookie(util.CookieKey, token, 0, "/", "", false, true)
 
 	// 重置所有客户端session状态

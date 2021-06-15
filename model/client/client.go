@@ -9,8 +9,7 @@ type Client struct {
 	base.Model
 	Domain   string `gorm:"unique;not null"`
 	Callback string `gorm:"index;not null"`
-	Secret   string `gorm:"not null"`
-	Status   uint   `gorm:"not null;"`
+	Secret   string `gorm:"not null;type:varchar(255)"`
 }
 
 func (c *Client) Base() {}
