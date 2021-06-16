@@ -47,7 +47,7 @@ func construct(router *gin.Engine) {
 	}
 }
 
-// sso中心页面入口
+// ssoBase sso中心页面入口
 func ssoBase() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		domain := c.Query(util.Domain)
@@ -84,7 +84,7 @@ func ssoBase() gin.HandlerFunc {
 	}
 }
 
-// admin页面
+// adminBase admin页面
 func adminBase() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie(util.CookieFlag)

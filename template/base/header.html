@@ -11,5 +11,6 @@
 <div class="container">
     <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
         <strong>Admin Center</strong>
+        <a href="/sso/logout" class="float-right {{ if .login }} visible {{ else }} invisible {{ end }}">退出</a>
     </div>
 {{ end }}

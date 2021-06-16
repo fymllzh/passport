@@ -16,8 +16,9 @@ func Index(c *gin.Context) {
 	var cl []client.Client
 	db.Db.Find(&cl)
 	c.HTML(http.StatusOK, "admin/index/index", gin.H{
-		"users": u,
+		"users":   u,
 		"clients": cl,
+		"login":   true,
 	})
 }
 

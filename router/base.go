@@ -66,7 +66,7 @@ func InitRouter() *gin.Engine {
 
 	router.Use(gin.Recovery())
 
-	router.LoadHTMLFiles(loadTemplates("templates")...)
+	router.LoadHTMLFiles(loadTemplates("template")...)
 
 	construct(router)
 

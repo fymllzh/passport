@@ -48,7 +48,6 @@ const (
 	User       = "user"
 	Timestamp  = "timestamp"
 	Sign       = "sign"
-	Secret     = "secret"
 )
 
 type SvcRequest struct {
