@@ -81,4 +81,3 @@ $str .= "123456";
 
 echo strtoupper(md5($str)), PHP_EOL;
 ```
-aaa
