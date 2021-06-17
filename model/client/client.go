@@ -10,6 +10,7 @@ type Client struct {
 	Domain   string `gorm:"unique;not null"`
 	Callback string `gorm:"index;not null"`
 	Secret   string `gorm:"not null;type:varchar(255)"`
+	Status   uint   `gorm:"not null;type:tinyint unsigned" json:"-"`
 }
 
 func (c *Client) Base() {}

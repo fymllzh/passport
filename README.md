@@ -8,12 +8,18 @@
 127.0.0.1 sso.com
 ```
 
-2. 初始化mysql数据库和表
+2. 调整`conf/app.ini`，初始化mysql数据库和表
+* 创建数据库
+  
+`CREATE DATABASE IF NOT EXISTS passport DEFAULT CHARACTER SET utf8`
+
+* 初始化表结构
 ```shell
 ./run.sh init
 ```
 
 3. 编译主程序，默认监听8099端口
+
 4. 启动两个客户端程序
 ```shell
 # 默认监听8081
@@ -35,12 +41,20 @@ email: admin@gmail.com
 password: admin
 ```
 
+5. 直接登录sso中心
+```
+sso.com:8099
+```
+
 ## TODO
 - [X] 登录逻辑
 - [X] 退出逻辑
 - [X] 签名机制
 - [ ] 引入redis做svc接口
 - [ ] IP白名单
+- [ ] 登录错误次数限制
+- [ ] 后台功能列表
+- [ ] 日志处理
 - [X] sso中心后台
 
 ## 对接流程

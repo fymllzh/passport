@@ -11,7 +11,8 @@ type User struct {
 	Email      string    `gorm:"unique" json:"email"`
 	Password   string    `gorm:"not null;type:varchar(255)" json:"-"`
 	Token      string    `gorm:"unique;not null;default:''" json:"-"`
-	ExpireTime time.Time `json:"-"`
+	ExpireTime time.Time `gorm:"unique;default:null" json:"-"`
+	Status     uint      `gorm:"not null;type:tinyint unsigned" json:"-"`
 }
 
 func (u *User) Base() {}
