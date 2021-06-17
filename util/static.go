@@ -18,21 +18,23 @@ const (
 	SystemError
 	// 内部状态码
 	UsernamePasswdNotMatch
+	UsernamePasswdFailNumOut
 )
 
 var errors = [...]string{
-	Success:                "success",
-	ParamsError:            "params error",
-	SignatureError:         "signature error",
-	UserDisabled:           "user disabled",
-	TokenNotExists:         "token not exists",
-	TokenParseError:        "token parse exists",
-	SessionExpired:         "session expired",
-	SessionStatusNotLogin:  "session status not login",
-	ClientNotExists:        "client not exists",
-	ClientDisabled:         "client disabled",
-	SystemError:            "system error",
-	UsernamePasswdNotMatch: "用户名密码错误",
+	Success:                  "success",
+	ParamsError:              "params error",
+	SignatureError:           "signature error",
+	UserDisabled:             "user disabled",
+	TokenNotExists:           "token not exists",
+	TokenParseError:          "token parse exists",
+	SessionExpired:           "session expired",
+	SessionStatusNotLogin:    "session status not login",
+	ClientNotExists:          "client not exists",
+	ClientDisabled:           "client disabled",
+	SystemError:              "system error",
+	UsernamePasswdNotMatch:   "用户名密码错误",
+	UsernamePasswdFailNumOut: "失败次数过多",
 }
 
 // 通用key

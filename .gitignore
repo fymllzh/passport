@@ -2,3 +2,4 @@ gin
 log
 .idea
 passport
+/test.go

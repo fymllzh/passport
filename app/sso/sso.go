@@ -5,6 +5,7 @@ package sso
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/wuzehv/passport/model/client"
+	"github.com/wuzehv/passport/model/login/record"
 	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
@@ -34,7 +35,7 @@ func Index(c *gin.Context) {
 		return
 	}
 
-	commonDeal(c, uid, jump)
+	commonDeal(c, cl, uid, jump)
 }
 
 func Login(c *gin.Context) {
@@ -48,7 +49,27 @@ func Login(c *gin.Context) {
 	var u user.User
 	u.GetByEmail(name)
 
+	tmp, _ := c.Get(util.Client)
+	cl := tmp.(*client.Client)
+
+	// 初始化登录信息
+	r := record.Record{
+		UserId:    u.Id,
+		ClientId:  cl.Id,
+		IpAddr:    c.ClientIP(),
+		UserAgent: c.Request.UserAgent(),
+	}
+
+	if record.FailNumOut() {
+		r.Type = record.TypeOther
+		db.Db.Save(&r)
+		c.AbortWithStatusJSON(http.StatusOK, util.UsernamePasswdFailNumOut.Msg(nil))
+		return
+	}
+
 	if !util.VerifyPassword(u.Password, passwd) {
+		r.Type = record.TypeFail
+		db.Db.Save(&r)
 		c.AbortWithStatusJSON(http.StatusOK, util.UsernamePasswdNotMatch.Msg(nil))
 		return
 	}
@@ -65,13 +86,13 @@ func Login(c *gin.Context) {
 	// 重置所有客户端session状态
 	session.LogoutAll(u.Id)
 
-	commonDeal(c, u.Id, jump)
+	r.Type = record.TypeSuccess
+	db.Db.Save(&r)
+
+	commonDeal(c, cl, u.Id, jump)
 }
 
-func commonDeal(c *gin.Context, userId uint, jump string) {
-	tmp, _ := c.Get(util.Client)
-	cl := tmp.(*client.Client)
-
+func commonDeal(c *gin.Context, cl *client.Client, userId uint, jump string) {
 	// 持久化
 	s := session.NewSession(userId, cl.Id)
 
@@ -86,7 +107,7 @@ func commonDeal(c *gin.Context, userId uint, jump string) {
 
 	callbackUrl.RawQuery = callbackParams.Encode()
 
-	tmp, _ = c.Get(util.Sso)
+	tmp, _ := c.Get(util.Sso)
 	isSso := tmp.(bool)
 
 	if isSso {
