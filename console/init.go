@@ -9,6 +9,7 @@ import (
 	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/util"
+	"github.com/wuzehv/passport/util/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
@@ -23,15 +24,12 @@ CREATE DATABASE IF NOT EXISTS passport DEFAULT CHARACTER SET utf8
 `
 
 func main() {
-	u := util.ENV("db", "user")
-	passwd := util.ENV("db", "passwd")
+	u := config.Db.User
+	passwd := config.Db.Passwd
+	host := config.Db.Host
+	dbName := config.Db.DbName
 
-	host := util.ENV("db", "host")
-	port := util.ENV("db", "port")
-
-	dbName := util.ENV("db", "name")
-
-	dsn := u + ":" + passwd + "@tcp(" + host + ":" + port + ")/?parseTime=true"
+	dsn := u + ":" + passwd + "@tcp(" + host + ")/?parseTime=true"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err.Error())
@@ -46,7 +44,7 @@ func main() {
 	db.Exec(passportDb)
 	log.Println("create database done")
 
-	dsn = u + ":" + passwd + "@tcp(" + host + ":" + port + ")/" + dbName + "?parseTime=true"
+	dsn = u + ":" + passwd + "@tcp(" + host + ")/" + dbName + "?parseTime=true"
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err.Error())

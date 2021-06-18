@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/wuzehv/passport/util"
+	"github.com/wuzehv/passport/util/config"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -51,7 +52,7 @@ func wrapHandler(handler http.HandlerFunc) http.HandlerFunc {
 		domain = url2.QueryEscape(r.Host)
 
 		jump := url2.QueryEscape("http://" + r.Host + r.RequestURI)
-		url := "http://" + util.ENV("", "domain") + util.ENV("", "addr") + "/sso/index?domain=" + domain + "&jump=" + jump
+		url := "http://" + config.App.Domain + config.App.Port + "/sso/index?domain=" + domain + "&jump=" + jump
 
 		if err != nil {
 			http.Redirect(w, r, url, http.StatusTemporaryRedirect)
@@ -101,8 +102,8 @@ func _default(w http.ResponseWriter, r *http.Request) {
 }
 
 func httpRequest(url string, token string) (interface{}, error) {
-	port := util.ENV("", "addr")
-	ssoDomain := "http://" + util.ENV("", "domain")
+	port := config.App.Port
+	ssoDomain := "http://" + config.App.Domain
 
 	ssoUrl := ssoDomain + port + url
 

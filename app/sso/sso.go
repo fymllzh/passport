@@ -10,7 +10,6 @@ import (
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -21,8 +20,7 @@ func Index(c *gin.Context) {
 	tmp, _ := c.Get(util.Client)
 	cl := tmp.(*client.Client)
 
-	tmp, _ = c.Get(util.Jump)
-	jump := tmp.(string)
+	jump := c.GetString(util.Jump)
 
 	u, _ := c.Get(util.Uid)
 	uid := u.(uint)
@@ -39,8 +37,7 @@ func Index(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	j, _ := c.Get(util.Jump)
-	jump := j.(string)
+	jump := c.GetString(util.Jump)
 
 	name := c.PostForm("username")
 	passwd := c.PostForm("password")
@@ -93,10 +90,7 @@ func Login(c *gin.Context) {
 }
 
 func commonDeal(c *gin.Context, cl *client.Client, userId uint, jump string) {
-	callbackUrl, err := url.Parse(cl.Callback)
-	if err != nil {
-		log.Fatal("callback url config error")
-	}
+	callbackUrl, _ := url.Parse(cl.Callback)
 
 	// 持久化
 	s := session.NewSession(userId, cl.Id)
@@ -107,8 +101,7 @@ func commonDeal(c *gin.Context, cl *client.Client, userId uint, jump string) {
 
 	callbackUrl.RawQuery = callbackParams.Encode()
 
-	tmp, _ := c.Get(util.Sso)
-	isSso := tmp.(bool)
+	isSso := c.GetBool(util.Sso)
 
 	if isSso {
 		c.HTML(http.StatusOK, "sso/redirect", gin.H{

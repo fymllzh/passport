@@ -1,26 +1,36 @@
 package db
 
 import (
-	"github.com/wuzehv/passport/util"
+	"fmt"
+	"github.com/wuzehv/passport/util/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"log"
+	"os"
+	"time"
 )
 
 var Db *gorm.DB
 
 func init() {
-	user := util.ENV("db", "user")
-	passwd := util.ENV("db", "passwd")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", config.Db.User, config.Db.Passwd, config.Db.Host, config.Db.DbName)
 
-	host := util.ENV("db", "host")
-	port := util.ENV("db", "port")
-
-	db := util.ENV("db", "name")
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold: time.Second,
+			LogLevel:      logger.Warn,
+			Colorful:      false,
+		},
+	)
 
 	var err error
-	dsn := user + ":" + passwd + "@tcp(" + host + ":" + port + ")/" + db + "?parseTime=true"
-	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: newLogger,
+	})
+
 	if err != nil {
-		panic(err)
+		log.Fatalf("mysql init error: %v\n", err)
 	}
 }

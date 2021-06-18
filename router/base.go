@@ -3,8 +3,9 @@ package router
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/wuzehv/passport/util"
+	"github.com/wuzehv/passport/util/config"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -26,21 +27,18 @@ type logFormat struct {
 func InitRouter() *gin.Engine {
 	gin.DisableConsoleColor()
 
-	rootDir := util.ENV("", "root_dir")
-	logDir := util.ENV("log", "dir")
-
-	finalDir := rootDir + logDir
-	if _, err := os.Stat(finalDir); os.IsNotExist(err) {
-		if err = os.MkdirAll(finalDir, 0777); err != nil {
-			panic(err)
+	logDir := config.Log.Dir
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		if err = os.MkdirAll(logDir, 0777); err != nil {
+			log.Fatalf("log dir create error: %v\n", err)
 		}
 	}
 
-	finalFile := finalDir + "/gin.log"
+	finalFile := logDir + "/gin.log"
 
 	f, err := os.Create(finalFile)
 	if err != nil {
-		panic(err)
+		log.Fatalf("log file create error: %v\n", err)
 	}
 	gin.DefaultWriter = io.MultiWriter(f)
 
@@ -76,12 +74,12 @@ func InitRouter() *gin.Engine {
 func loadTemplates(templatesDir string) []string {
 	other, err := filepath.Glob(templatesDir + "/**/*.html")
 	if err != nil {
-		panic(err)
+		log.Fatalf("load template error: %v\n", err)
 	}
 
 	admin, err := filepath.Glob(templatesDir + "/**/**/*.html")
 	if err != nil {
-		panic(err)
+		log.Fatalf("load template error: %v\n", err)
 	}
 
 	return append(admin, other...)
