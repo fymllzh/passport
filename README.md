@@ -3,6 +3,7 @@
 ## 依赖
 * [gin](https://github.com/gin-gonic/gin)
 * [gorm](https://gorm.io/zh_CN/)
+* [go-redis](https://redis.uptrace.dev/)
 
 ## 使用
 1. 配置hosts
