@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"math/rand"
 	"sort"
 	"strings"
@@ -13,7 +14,7 @@ import (
 func GenPassword(pwd string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	if err != nil {
-		panic(err)
+		log.Printf("generate password error: %v\n", err)
 	}
 
 	return string(hash)
