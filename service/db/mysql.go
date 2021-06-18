@@ -4,7 +4,6 @@ import (
 	"github.com/wuzehv/passport/util"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
 )
 
 var Db *gorm.DB
@@ -22,6 +21,6 @@ func init() {
 	dsn := user + ":" + passwd + "@tcp(" + host + ":" + port + ")/" + db + "?parseTime=true"
 	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalln(err.Error())
+		panic(err)
 	}
 }

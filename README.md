@@ -1,5 +1,9 @@
 # sso实践
 
+## 依赖
+* [gin](https://github.com/gin-gonic/gin)
+* [gorm](https://gorm.io/zh_CN/)
+
 ## 使用
 1. 配置hosts
 ```etc
@@ -50,7 +54,7 @@ sso.com:8099
 - [X] 登录逻辑
 - [X] 退出逻辑
 - [X] 签名机制
-- [ ] 引入redis做svc接口
+- [X] 引入redis做svc接口
 - [ ] IP白名单
 - [X] 登录错误次数限制
 - [ ] 后台功能列表

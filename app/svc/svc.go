@@ -7,8 +7,10 @@ import (
 	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
+	"github.com/wuzehv/passport/service/rdb"
 	"github.com/wuzehv/passport/util"
 	"net/http"
+	"time"
 )
 
 // Session 客户端回调确认接口
@@ -43,5 +45,8 @@ func Userinfo(c *gin.Context) {
 
 	tmp, _ = c.Get(util.User)
 	u := tmp.(*user.User)
+
+	rdb.SetJson(s.Token, u, time.Minute)
+
 	c.JSON(http.StatusOK, util.Success.Msg(u))
 }

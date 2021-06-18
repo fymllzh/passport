@@ -11,6 +11,7 @@ import (
 	"github.com/wuzehv/passport/model/session"
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
+	"github.com/wuzehv/passport/service/rdb"
 	"github.com/wuzehv/passport/util"
 	"net/http"
 	"net/url"
@@ -128,6 +129,12 @@ func svcBase() gin.HandlerFunc {
 			return
 		}
 
+		var u user.User
+		if rdb.GetJson(res.Token, &u) {
+			c.AbortWithStatusJSON(http.StatusOK, util.Success.Msg(u))
+			return
+		}
+
 		domain := res.Domain
 		domain, _ = url.QueryUnescape(domain)
 
@@ -158,7 +165,6 @@ func svcBase() gin.HandlerFunc {
 			return
 		}
 
-		var u user.User
 		db.Db.First(&u, s.UserId)
 
 		if u.Id == 0 || u.Status != base.StatusNormal {

@@ -93,13 +93,13 @@ func Login(c *gin.Context) {
 }
 
 func commonDeal(c *gin.Context, cl *client.Client, userId uint, jump string) {
-	// 持久化
-	s := session.NewSession(userId, cl.Id)
-
 	callbackUrl, err := url.Parse(cl.Callback)
 	if err != nil {
 		log.Fatal("callback url config error")
 	}
+
+	// 持久化
+	s := session.NewSession(userId, cl.Id)
 
 	callbackParams := url.Values{}
 	callbackParams.Add(util.Token, s.Token)
