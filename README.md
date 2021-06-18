@@ -1,6 +1,6 @@
 # sso实践
 
-## 依赖
+## 主要依赖
 * [gin](https://github.com/gin-gonic/gin)
 * [gorm](https://gorm.io/zh_CN/)
 * [go-redis](https://redis.uptrace.dev/)
