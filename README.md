@@ -15,7 +15,7 @@
 
 2. 调整`conf/app.ini`，初始化mysql数据库和表
 * 创建数据库
-  
+
 `CREATE DATABASE IF NOT EXISTS passport DEFAULT CHARACTER SET utf8`
 
 * 初始化表结构
