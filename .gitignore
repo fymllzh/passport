@@ -5,3 +5,4 @@ passport
 /test.go
 tra.ini
 pro.ini
+.DS_Store
