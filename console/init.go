@@ -3,6 +3,7 @@ package main
 
 import (
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/wuzehv/passport/model/action"
 	"github.com/wuzehv/passport/model/base"
 	"github.com/wuzehv/passport/model/client"
 	"github.com/wuzehv/passport/model/login/record"
@@ -54,29 +55,31 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 	log.Println("create users table done")
 
 	err = db.AutoMigrate(session.Session{})
 	if err != nil {
 		panic(err)
 	}
-
 	log.Println("create tokens table done")
 
 	err = db.AutoMigrate(client.Client{})
 	if err != nil {
 		panic(err)
 	}
-
 	log.Println("create clients table done")
 
 	err = db.AutoMigrate(record.Record{})
 	if err != nil {
 		panic(err)
 	}
-
 	log.Println("create records table done")
+
+	err = db.AutoMigrate(action.Action{})
+	if err != nil {
+		panic(err)
+	}
+	log.Println("create actions table done")
 
 	db.Create(&client.Client{Domain: "client.one.com:8081", Callback: "http://client.one.com:8081/callback", Secret: "123456", Status: base.StatusNormal})
 	db.Create(&client.Client{Domain: "client.two.com:8082", Callback: "http://client.two.com:8082/callback", Secret: "123456", Status: base.StatusNormal})

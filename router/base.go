@@ -25,6 +25,7 @@ type logFormat struct {
 }
 
 func InitRouter() *gin.Engine {
+	gin.SetMode(config.App.RunMode)
 	gin.DisableConsoleColor()
 
 	logDir := config.Log.Dir

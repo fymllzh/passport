@@ -18,6 +18,7 @@ type app struct {
 	Port    string
 	RootDir string
 	Domain  string
+	RunMode string
 }
 
 type db struct {

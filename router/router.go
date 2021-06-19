@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/wuzehv/passport/app/admin/action"
 	"github.com/wuzehv/passport/app/admin/index"
 	"github.com/wuzehv/passport/app/sso"
 	"github.com/wuzehv/passport/app/svc"
@@ -34,6 +35,8 @@ func constructAdmin(router *gin.Engine) {
 	{
 		r.GET("/index/index", index.Index)
 		r.GET("/index/test", index.Test)
+
+		r.POST("/action/index", action.Index)
 	}
 }
 
