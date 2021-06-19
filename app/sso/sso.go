@@ -10,6 +10,7 @@ import (
 	"github.com/wuzehv/passport/model/user"
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
+	"github.com/wuzehv/passport/util/config"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,8 +23,7 @@ func Index(c *gin.Context) {
 
 	jump := c.GetString(util.Jump)
 
-	u, _ := c.Get(util.Uid)
-	uid := u.(uint)
+	uid := c.GetInt(util.Uid)
 
 	if uid == 0 {
 		c.HTML(http.StatusOK, "sso/login", gin.H{
@@ -33,7 +33,7 @@ func Index(c *gin.Context) {
 		return
 	}
 
-	commonDeal(c, cl, uid, jump)
+	commonDeal(c, cl, uint(uid), jump)
 }
 
 func Login(c *gin.Context) {
@@ -44,7 +44,11 @@ func Login(c *gin.Context) {
 
 	// 校验密码
 	var u user.User
-	u.GetByEmail(name)
+	err := u.GetByEmail(name)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusOK, util.SystemError.Msg(nil))
+		return
+	}
 
 	tmp, _ := c.Get(util.Client)
 	cl := tmp.(*client.Client)
@@ -78,10 +82,14 @@ func Login(c *gin.Context) {
 	u.ExpireTime = exp
 	db.Db.Save(&u)
 	// 设置会话为浏览器关闭即失效
-	c.SetCookie(util.CookieFlag, token, 0, "/", "", false, true)
+	c.SetCookie(util.CookieFlag, token, 0, "/", "", !config.IsDev(), true)
 
 	// 重置所有客户端session状态
-	session.LogoutAll(u.Id)
+	err = session.LogoutAll(u.Id)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusOK, util.SystemError.Msg(nil))
+		return
+	}
 
 	r.Type = record.TypeSuccess
 	db.Db.Save(&r)
@@ -114,10 +122,9 @@ func commonDeal(c *gin.Context, cl *client.Client, userId uint, jump string) {
 }
 
 func Logout(c *gin.Context) {
-	u, _ := c.Get(util.Uid)
-	uid := u.(uint)
-	session.LogoutAll(uid)
+	uid := c.GetInt(util.Uid)
+	session.LogoutAll(uint(uid))
 
-	c.SetCookie(util.CookieFlag, "false", -1, "/", "", false, true)
+	c.SetCookie(util.CookieFlag, "false", -1, "/", "", !config.IsDev(), true)
 	c.HTML(http.StatusOK, "sso/logout", gin.H{})
 }

@@ -1,8 +1,10 @@
 package client
 
 import (
+	"errors"
 	"github.com/wuzehv/passport/model/base"
 	"github.com/wuzehv/passport/service/db"
+	"gorm.io/gorm"
 )
 
 type Client struct {
@@ -15,6 +17,11 @@ type Client struct {
 
 func (c *Client) Base() {}
 
-func (c *Client) GetByDomain(domain string) {
-	db.Db.Where("domain = ?", domain).First(c)
+func (c *Client) GetByDomain(domain string) error {
+	if err := db.Db.Where("domain = ?", domain).First(c).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		// sql错误
+		return err
+	}
+
+	return nil
 }

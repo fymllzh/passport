@@ -1,9 +1,11 @@
 package session
 
 import (
+	"errors"
 	"github.com/wuzehv/passport/model/base"
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/util"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -42,10 +44,14 @@ func NewSession(userId, clientId uint) Session {
 	return s
 }
 
-func (s *Session) GetByToken(t string) {
-	db.Db.Where("token = ?", t).First(&s)
+func (s *Session) GetByToken(t string) error {
+	if err := db.Db.Where("token = ?", t).First(&s).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	return nil
 }
 
-func LogoutAll(userId uint) {
-	db.Db.Model(Session{}).Where("user_id = ? and status = ?", userId, StatusLogin).Updates(Session{Status: StatusLogout})
+func LogoutAll(userId uint) error {
+	return db.Db.Model(Session{}).Where("user_id = ? and status = ?", userId, StatusLogin).Updates(Session{Status: StatusLogout}).Error
 }

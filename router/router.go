@@ -13,6 +13,7 @@ import (
 	"github.com/wuzehv/passport/service/db"
 	"github.com/wuzehv/passport/service/rdb"
 	"github.com/wuzehv/passport/util"
+	"github.com/wuzehv/passport/util/config"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -53,21 +54,21 @@ func ssoBase() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		domain := c.Query(util.Domain)
 		var cl client.Client
-		cl.GetByDomain(domain)
+		err := cl.GetByDomain(domain)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, util.SystemError)
+			return
+		}
 
-		c.Set(util.Sso, true)
 		if cl.Id > 0 && cl.Status != base.StatusNormal {
 			c.AbortWithError(http.StatusForbidden, util.ClientDisabled)
 			return
 		}
 
-		if cl.Id == 0 {
-			c.Set(util.Sso, false)
-		}
-
+		c.Set(util.Sso, cl.Id != 0)
 		c.Set(util.Client, &cl)
 		c.Set(util.Jump, c.Query(util.Jump))
-		c.Set(util.Uid, uint(0))
+		c.Set(util.Uid, 0)
 
 		// 根据token解析出用户信息
 		token, err := c.Cookie(util.CookieFlag)
@@ -81,7 +82,7 @@ func ssoBase() gin.HandlerFunc {
 			return
 		}
 
-		c.Set(util.Uid, uint(uid))
+		c.Set(util.Uid, uid)
 	}
 }
 
@@ -110,7 +111,7 @@ func adminBase() gin.HandlerFunc {
 		// 判断登录是否过期
 		if u.Token != token || time.Now().After(u.ExpireTime) {
 			// 显式的删除cookie
-			c.SetCookie(util.CookieFlag, "false", -1, "/", "", false, true)
+			c.SetCookie(util.CookieFlag, "false", -1, "/", "", !config.IsDev(), true)
 
 			c.Redirect(http.StatusTemporaryRedirect, "/")
 			return
@@ -139,7 +140,11 @@ func svcBase() gin.HandlerFunc {
 		domain, _ = url.QueryUnescape(domain)
 
 		var cl client.Client
-		cl.GetByDomain(domain)
+		err := cl.GetByDomain(domain)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusOK, util.SystemError.Msg(nil))
+			return
+		}
 
 		if cl.Id == 0 || cl.Status != base.StatusNormal {
 			c.AbortWithStatusJSON(http.StatusOK, util.ClientDisabled.Msg(nil))
@@ -158,7 +163,11 @@ func svcBase() gin.HandlerFunc {
 		t := res.Token
 
 		var s session.Session
-		s.GetByToken(t)
+		err = s.GetByToken(t)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusOK, util.SystemError.Msg(nil))
+			return
+		}
 
 		if s.Id == 0 {
 			c.AbortWithStatusJSON(http.StatusOK, util.TokenNotExists.Msg(nil))

@@ -1,8 +1,10 @@
 package user
 
 import (
+	"errors"
 	"github.com/wuzehv/passport/model/base"
 	"github.com/wuzehv/passport/service/db"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -17,6 +19,11 @@ type User struct {
 
 func (u *User) Base() {}
 
-func (u *User) GetByEmail(email string) {
-	db.Db.Where("email = ?", email).First(u)
+func (u *User) GetByEmail(email string) error {
+	if err := db.Db.Where("email = ?", email).First(u).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		// sql错误
+		return err
+	}
+
+	return nil
 }

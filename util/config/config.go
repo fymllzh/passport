@@ -7,6 +7,12 @@ import (
 	"os"
 )
 
+const (
+	Dev = "dev"
+	Tra = "tra"
+	Pro = "pro"
+)
+
 type app struct {
 	Env     string
 	Port    string
@@ -81,4 +87,16 @@ func mapTo(section string, v interface{}) {
 	if err != nil {
 		log2.Fatalf("config mapto error: %v\n", err)
 	}
+}
+
+func IsDev() bool {
+	return App.Env == Dev
+}
+
+func IsTra() bool {
+	return App.Env == Tra
+}
+
+func IsPro() bool {
+	return App.Env == Pro
 }
